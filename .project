@@ -3,9 +3,18 @@
 	<name>tp-2017-2c-La-yama-operativa</name>
 	<comment></comment>
 	<projects>
+		<project>yama</project>
+		<project>yamafs</project>
+		<project>yamanode</project>
 	</projects>
 	<buildSpec>
 	</buildSpec>
 	<natures>
 	</natures>
+	<variableList>
+		<variable>
+			<name>common</name>
+			<value>PROJECT_LOC/common</value>
+		</variable>
+	</variableList>
 </projectDescription>
