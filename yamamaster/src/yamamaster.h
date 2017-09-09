@@ -1,16 +1,14 @@
 /*
- * master.h
+ * yamamaster.h
  *
- *  Created on: 5/9/2017
+ *  Created on: 9/9/2017
  *      Author: utnso
  */
 
-#ifndef YAMAMASTER_SRC_MASTER_H_
-#define YAMAMASTER_SRC_MASTER_H_
-
+#ifndef SRC_YAMAMASTER_H_
+#define SRC_YAMAMASTER_H_
 
 #include <stdio.h>
 #include <stdlib.h>
 
-
-#endif /* YAMAMASTER_SRC_MASTER_H_ */
+#endif /* SRC_YAMAMASTER_H_ */
