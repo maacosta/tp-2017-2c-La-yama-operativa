@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	config_liberar(config);
 
 	pthread_t th_consola;
-	pthread_create(&th_consola, NULL, (void *) iniciar_consola, NULL);
+	pthread_create(&th_consola, NULL, (void *) consola_iniciar, NULL);
 
 	pthread_join(th_consola, NULL);
 

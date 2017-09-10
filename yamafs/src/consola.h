@@ -32,10 +32,10 @@
 #define COMANDO_LISTAR "ls"
 #define COMANDO_MOSTRAR_INFO_ARCHIVO "info"
 
-void iniciar_consola();
-void remueve_salto_de_linea(char* salida, char* texto);
-char* comando_preparado(char* comando);
-int ejecutar_comando(char* comando);
-int mostrar_ayuda(char* parametro);
+void consola_iniciar();
+void consola_remueve_salto_de_linea(char* salida, char* texto);
+char* consola_comando_preparado(char* comando);
+int consolsa_ejecutar_comando(char* comando);
+int consola_mostrar_ayuda(char* parametro);
 
 #endif /* SRC_CONSOLA_H_ */
