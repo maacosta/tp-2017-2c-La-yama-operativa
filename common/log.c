@@ -1,6 +1,4 @@
 #include "log.h"
-#include <commons/string.h>
-#include <commons/log.h>
 
 #define LOG_BUFFER_SIZE 256
 
@@ -8,6 +6,10 @@ static t_log *logger = NULL;
 
 static void log_template(bool error, const char *format, va_list args) {
 	if(!LOG_ENABLED) return;
+
+	if(logger == NULL) {
+		log_init("log.txt", "log", LOG_STDOUT);
+	}
 
 	char message[LOG_BUFFER_SIZE];
 
@@ -20,12 +22,12 @@ static void log_template(bool error, const char *format, va_list args) {
 	}
 }
 
-void log_init(char* file, char *name) {
+void log_init(char* file, char *name, bool is_active_console) {
 	if(logger == NULL) {
 		logger = log_create(
 				file,
 				name,
-				LOG_STDOUT,
+				is_active_console,
 				LOG_LEVEL_TRACE);
 	}
 

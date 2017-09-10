@@ -1,0 +1,3 @@
+LOG_FILE=log.txt
+LOG_NAME=yamafs
+PUERTO=5003

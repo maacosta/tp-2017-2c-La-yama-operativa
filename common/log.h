@@ -4,10 +4,13 @@
 #define LOG_ENABLED true
 #define LOG_STDOUT true
 
+#include <commons/string.h>
+#include <commons/log.h>
+
 /**
  * Inicializa el log
  */
-void log_init(char* file, char *name);
+void log_init(char* file, char *name, bool is_active_console);
 
 /**
  * Informa un mensaje de informacion
