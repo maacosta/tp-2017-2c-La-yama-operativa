@@ -1,11 +1,11 @@
 /*
- * yama.c
+ * main.c
  *
  *  Created on: 4/9/2017
  *      Author: utnso
  */
 
-#include "yama.h"
+#include "main.h"
 #include "../../common/log.h"
 
 

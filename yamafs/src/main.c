@@ -1,11 +1,11 @@
 /*
- * yamanode.c
+ * main.c
  *
  *  Created on: 4/9/2017
  *      Author: utnso
  */
 
-#include "yamanode.h"
+#include "main.h"
 
 int main(int argc, char **argv) {
 

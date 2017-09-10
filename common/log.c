@@ -1,5 +1,4 @@
 #include "log.h"
-
 #include <commons/string.h>
 #include <commons/log.h>
 

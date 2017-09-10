@@ -1,14 +1,15 @@
 /*
- * yamamaster.h
+ * main.h
  *
  *  Created on: 9/9/2017
  *      Author: utnso
  */
 
-#ifndef SRC_YAMAMASTER_H_
-#define SRC_YAMAMASTER_H_
+#ifndef MAIN_YAMAWORKER_H_
+#define MAIN_YAMAWORKER_H_
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#endif /* SRC_YAMAMASTER_H_ */
+
+#endif /* MAIN_YAMAWORKER_H_ */

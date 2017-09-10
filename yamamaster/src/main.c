@@ -1,5 +1,5 @@
 /*
- * yamaworker.c
+ * main.c
  *
  *  Created on: 9/9/2017
  *      Author: utnso
@@ -7,10 +7,7 @@
 
 
 
-#include "yamaworker.h"
-
-
-
+#include "main.h"
 
 int main(int argc, char **argv) {
 
