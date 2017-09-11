@@ -1,116 +1,117 @@
-/*
- * consola.c
- *
- *  Created on: 9/9/2017
- *      Author: utnso
- */
 #include "consola.h"
 
-void consola_iniciar() {
-
-	//En realidad no importa el tamaño del buffer porque si se pasa getLine se da cuenta y hace un realloc :D
-	size_t buffer_size = 100;
-	char* comando = (char *) calloc(1, buffer_size);
-	puts("Ingrese un comando, ayuda o salir");
-	while (!string_equals_ignore_case(comando, "salir\n")) {
-		printf(">");
-		int bytes_read = getline(&comando, &buffer_size, stdin);
-
-		if (bytes_read == -1) {
-			//log_error_consola("Error en getline");
-		}
-		if (bytes_read == 1) {
-			continue;
-		}
-		if (consola_ejecutar_comando(comando) == 0) {
-			char* comando_listo = consola_comando_preparado(comando);
-			//log_debug_interno("El comando %s fue ejecutado con exito", comando_listo);
-		}
+static int mostrar_ayuda(char* parametro) {
+	if (parametro == NULL) {
+		puts("Accion 			=> Comando");
+		puts("---------------------	=> -----------------");
+		puts("FORMATER 		=> format");
+		puts("ELIMINAR ARCHIVO, DIRECTORIO, NODO O BLOQUE	=> rm");
+		puts("RENOMBRAR ARCHIVO O DIRECTORIO	=> rename");
+		puts("MOVER ARCHIVO O DIRECTORIO	=> mv");
+		puts("MOSTRAR ARCHIVO 	=> cat");
+		puts("CREAR DIRECTORIO 	=> mkdir");
+		puts("COPIAR ARCHIVO LOCAL A FS 	=> cpfrom");
+		puts("COPIAR ARCHIVO DE FS A LOCAL 	=> cpto");
+		puts("COPIAR BLOQUE 	=> cpblock");
+		puts("MD5	=> md5");
+		puts("LISTAR ARCHIVOS 			=> ls");
+		puts("MUESTRA INFO DEL ARCHIVO 		=> info");
 	}
-	free(comando);
+
+	return 0;
 }
 
-int consola_ejecutar_comando(char* comando) {
+static void remueve_salto_de_linea(char* salida, char* texto) {
+	strncpy(salida, texto, strlen(texto) - 1);
+}
+
+static char* comando_preparado(char* comando) {
+	char* cmd_listo = calloc(1, strlen(comando));
+	remueve_salto_de_linea(cmd_listo, comando);
+	return cmd_listo;
+}
+
+static int ejecutar_comando(char* comando) {
 	int ret;
-	char* comando_listo = consola_comando_preparado(comando);
-	char** parametros = string_n_split(comando_listo, 6, " ");
-	if (string_equals_ignore_case(parametros[0], COMANDO_AYUDA)) {
-		ret = consola_mostrar_ayuda(parametros[1]);
+	char* cmd_listo = comando_preparado(comando);
+	char** parametros = string_n_split(cmd_listo, 6, " ");
+	if (string_equals_ignore_case(parametros[0], CMD_AYUDA)) {
+		ret = mostrar_ayuda(parametros[1]);
 		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_FORMATEAR)) {
+	}else if (string_equals_ignore_case(parametros[0], CMD_FORMATEAR)) {
 
 		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_ELIMINAR_ARCHIVO)) {
-		if (parametros[1] == NULL) {
-					//logearErrorParametrosFaltantes
-					return 1;
-		}
-
-		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_RENOMBRAR_ARCHIVO)) {
-		if (parametros[1] == NULL || parametros[2] == NULL) {
-			//logearErrorParametrosFaltantes
-			return 1;
-		}
-
-		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_MOVER_ARCHIVO)) {
-		if (parametros[1] == NULL || parametros[2] == NULL) {
-			//logearErrorParametrosFaltantes
-			return 1;
-		}
-
-		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_MOSTRAR_ARCHIVO)) {
-		if (parametros[1] == NULL) {
-					//logearErrorParametrosFaltantes
-					return 1;
-		}
-
-		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_COPIAR_ARCHIVO_FS_LOCAL)) {
-		if (parametros[1] == NULL || parametros[2] == NULL) {
-			//logearErrorParametrosFaltantes
-			return 1;
-		}
-
-		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_COPIAR_ARCHIVO_LOCAL_FS)) {
-		if (parametros[1] == NULL || parametros[2] == NULL) {
-			//logearErrorParametrosFaltantes
-			return 1;
-		}
-
-		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_CREAR_DIRECTORIO)) {
+	}else if (string_equals_ignore_case(parametros[0], CMD_ELIMINAR_ARCHIVO)) {
 		if (parametros[1] == NULL) {
 			//logearErrorParametrosFaltantes
 			return 1;
 		}
 
 		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_COPIAR_BLOQUE)) {
+	}else if (string_equals_ignore_case(parametros[0], CMD_RENOMBRAR_ARCHIVO)) {
+		if (parametros[1] == NULL || parametros[2] == NULL) {
+			//logearErrorParametrosFaltantes
+			return 1;
+		}
+
+		return ret;
+	}else if (string_equals_ignore_case(parametros[0], CMD_MOVER_ARCHIVO)) {
+		if (parametros[1] == NULL || parametros[2] == NULL) {
+			//logearErrorParametrosFaltantes
+			return 1;
+		}
+
+		return ret;
+	}else if (string_equals_ignore_case(parametros[0], CMD_MOSTRAR_ARCHIVO)) {
+		if (parametros[1] == NULL) {
+			//logearErrorParametrosFaltantes
+			return 1;
+		}
+
+		return ret;
+	}else if (string_equals_ignore_case(parametros[0], CMD_COPIAR_ARCHIVO_FS_LOCAL)) {
+		if (parametros[1] == NULL || parametros[2] == NULL) {
+			//logearErrorParametrosFaltantes
+			return 1;
+		}
+
+		return ret;
+	}else if (string_equals_ignore_case(parametros[0], CMD_COPIAR_ARCHIVO_LOCAL_FS)) {
+		if (parametros[1] == NULL || parametros[2] == NULL) {
+			//logearErrorParametrosFaltantes
+			return 1;
+		}
+
+		return ret;
+	}else if (string_equals_ignore_case(parametros[0], CMD_CREAR_DIRECTORIO)) {
+		if (parametros[1] == NULL) {
+			//logearErrorParametrosFaltantes
+			return 1;
+		}
+
+		return ret;
+	}else if (string_equals_ignore_case(parametros[0], CMD_COPIAR_BLOQUE)) {
 		if (parametros[1] == NULL || parametros[2] == NULL || parametros[3] == NULL) {
 			//logearErrorParametrosFaltantes
 			return 1;
 		}
 
 		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_MD5)) {
+	}else if (string_equals_ignore_case(parametros[0], CMD_MD5)) {
 		if (parametros[1] == NULL) {
 			//logearErrorParametrosFaltantes
 			return 1;
 		}
 
 		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_LISTAR)) {
+	}else if (string_equals_ignore_case(parametros[0], CMD_LISTAR)) {
 		if (parametros[1] == NULL) {
 			//logearErrorParametrosFaltantes
 			return 1;
 		}
 
 		return ret;
-	}else if (string_equals_ignore_case(parametros[0], COMANDO_MOSTRAR_INFO_ARCHIVO)) {
+	}else if (string_equals_ignore_case(parametros[0], CMD_MOSTRAR_INFO_ARCHIVO)) {
 		if (parametros[1] == NULL) {
 			//logearErrorParametrosFaltantes
 			return 1;
@@ -125,21 +126,33 @@ int consola_ejecutar_comando(char* comando) {
 
 }
 
-void consola_remueve_salto_de_linea(char* salida, char* texto) {
-	strncpy(salida, texto, strlen(texto) - 1);
-}
+static void iniciar() {
+	//En realidad no importa el tamaño del buffer porque si se pasa getLine se da cuenta y hace un realloc :D
+	size_t buffer_size = 100;
+	char* comando = (char*)calloc(1, buffer_size);
+	puts("Ingrese un comando, ayuda o salir");
+	while (!string_equals_ignore_case(comando, "salir\n")) {
+		printf(">");
+		int bytes_read = getline(&comando, &buffer_size, stdin);
 
-char* consola_comando_preparado(char* comando) {
-	char* comando_listo = calloc(1, strlen(comando));
-	consola_remueve_salto_de_linea(comando_listo, comando);
-	return comando_listo;
-}
-
-int consola_mostrar_ayuda(char* parametro) {
-	if (parametro == NULL) {
-		puts(
-				"Accion 			=> Comando\n---------------------	=> -----------------\nFORMATER 		=> format\nELIMINAR ARCHIVO, DIRECTORIO, NODO O BLOQUE	=> rm\nRENOMBRAR ARCHIVO O DIRECTORIO	=> rename\nMOVER ARCHIVO O DIRECTORIO	=> mv\nMOSTRAR ARCHIVO 	=> cat\nCREAR DIRECTORIO 	=> mkdir\nCOPIAR ARCHIVO LOCAL A FS 	=> cpfrom\nCOPIAR ARCHIVO DE FS A LOCAL 	=> cpto\nCOPIAR BLOQUE 	=> cpblock\nMD5	=> md5\nLISTAR ARCHIVOS 			=> ls\nMUESTRA INFO DEL ARCHIVO 		=> info");
+		if (bytes_read == -1) {
+			//log_error_consola("Error en getline");
+		}
+		if (bytes_read == 1) {
+			continue;
+		}
+		if (ejecutar_comando(comando) == 0) {
+			char* CMD_listo = comando_preparado(comando);
+			//log_debug_interno("El comando %s fue ejecutado con exito", CMD_listo);
+		}
 	}
+	free(comando);
+}
 
-	return 0;
+void consola_crear(t_yamafs *config) {
+	pthread_t th_consola;
+
+	pthread_create(&th_consola, NULL, (void*)iniciar, NULL);
+
+	pthread_join(th_consola, NULL);
 }
