@@ -11,5 +11,5 @@ int main(int argc, char **argv) {
 
 	config_liberar(config);
 
-	return 0;
+	return EXIT_SUCCESS;
 }
