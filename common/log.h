@@ -6,6 +6,7 @@
 
 #include <commons/string.h>
 #include <commons/log.h>
+#include <stdbool.h>
 
 /**
  * Inicializa el log
