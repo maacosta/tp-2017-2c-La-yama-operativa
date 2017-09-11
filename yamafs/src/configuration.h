@@ -1,12 +1,5 @@
-/*
- * configuration.h
- *
- *  Created on: 9/9/2017
- *      Author: utnso
- */
-
-#ifndef SRC_CONFIGURATION_H_
-#define SRC_CONFIGURATION_H_
+#ifndef YAMAFS_CONFIGURATION_H_
+#define YAMAFS_CONFIGURATION_H_
 
 #include <commons/config.h>
 #include <unistd.h>
@@ -24,4 +17,4 @@ t_yamafs *config_leer(const char* path);
 
 void config_liberar(t_yamafs* config);
 
-#endif /* SRC_CONFIGURATION_H_ */
+#endif /* YAMAFS_CONFIGURATION_H_ */
