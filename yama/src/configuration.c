@@ -2,7 +2,8 @@
  * configuration.c
  *
  *  Created on: 11/9/2017
- *      Author: utnso
+ *      Author: ABDUL GANEM
+ *      Comentario: No estoy seguro de como se llama al algoritmo desde la configuracion
  */
 
 #include "configuration.h"
