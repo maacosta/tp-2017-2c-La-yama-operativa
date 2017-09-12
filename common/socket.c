@@ -6,7 +6,7 @@
 static struct addrinfo *create_addrinfo(const char *ip, const char *port) {
 	if(port != NULL) {
 		int n = atoi(port);
-		if(n >= 1024 && n <= 65535) {
+		if(n < 1024 && n > 65535) {
 			log_msg_error("El numero {%d} de puerto debe estar entre 1024 y 65535", n);
 			exit(EXIT_FAILURE);
 		}
@@ -20,7 +20,7 @@ static struct addrinfo *create_addrinfo(const char *ip, const char *port) {
 	if(ip == NULL) hints.ai_flags = AI_PASSIVE;
 
 	int status = getaddrinfo(ip, port, &hints, &addr);
-	if(status == 0) {
+	if(status != 0) {
 		log_msg_error(gai_strerror(status));
 		exit(EXIT_FAILURE);
 	}

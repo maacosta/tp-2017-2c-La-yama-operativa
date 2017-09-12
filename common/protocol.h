@@ -11,18 +11,18 @@ typedef enum {
 } operation_t;
 
 typedef struct {
-	process_t process;
+	unsigned char process;
+	unsigned char operation;
+	unsigned long size;
 } header_t;
 
 typedef struct {
 	header_t header;
-	operation_t operation;
-	unsigned long size;
-} message_t;
-
-typedef struct {
-	message_t message;
 	unsigned char *payload;
 } packet_t;
+
+size_t protocol_handshake_send(socket_t sockfd, process_t process);
+
+size_t protocol_handshake_receive(socket_t sockfd, header_t *header);
 
 #endif /* COMMON_PROTOCOL_H_ */
