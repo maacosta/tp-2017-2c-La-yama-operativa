@@ -149,7 +149,7 @@ static void iniciar() {
 	free(comando);
 }
 
-void consola_crear(t_yamafs *config) {
+void consola_crear(yamafs_t *config) {
 	pthread_t th_consola;
 
 	pthread_create(&th_consola, NULL, (void*)iniciar, NULL);

@@ -20,6 +20,6 @@
 #define CMD_LISTAR "ls"
 #define CMD_MOSTRAR_INFO_ARCHIVO "info"
 
-void consola_crear(t_yamafs *config);
+void consola_crear(yamafs_t *config);
 
 #endif /* SRC_CONSOLA_H_ */

@@ -9,14 +9,14 @@
 
 static t_config* c;
 
-t_yamafs *config_leer(const char* path) {
+yamafs_t *config_leer(const char* path) {
 	if(access(path, F_OK) == -1 ) {
 		log_msg_error("No existe el archivo de configuracion %s", path);
 		exit(EXIT_FAILURE);
 	}
 
 	c = config_create((char *)path);
-	t_yamafs *config = malloc(sizeof(t_yamafs));
+	yamafs_t *config = malloc(sizeof(yamafs_t));
 
 	config->log_file = config_get_string_value(c, "LOG_FILE");
 	config->log_name = config_get_string_value(c, "LOG_NAME");
@@ -25,7 +25,7 @@ t_yamafs *config_leer(const char* path) {
 	return config;
 }
 
-void config_liberar(t_yamafs* config) {
+void config_liberar(yamafs_t* config) {
 	config_destroy(c);
 	free(config);
 }

@@ -1,6 +1,6 @@
 #include "main.h"
 
-t_yamafs *config;
+yamafs_t *config;
 
 int main(int argc, char **argv) {
 	config = config_leer("metadata");

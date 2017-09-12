@@ -11,10 +11,10 @@ typedef struct{
 	char* log_file;
 	char* log_name;
 	int puerto;
-} t_yamafs;
+} yamafs_t;
 
-t_yamafs *config_leer(const char* path);
+yamafs_t *config_leer(const char* path);
 
-void config_liberar(t_yamafs* config);
+void config_liberar(yamafs_t* config);
 
 #endif /* YAMAFS_CONFIGURATION_H_ */
