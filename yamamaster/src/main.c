@@ -1,7 +1,7 @@
 #include "main.h"
 
 void conectar_con_yama() {
-	socket_t sockfd = socket_connect("127.0.0.1", "5000");
+	socket_t sockfd = socket_connect("127.0.0.1", "5001");
 
 	header_t header;
 	header.process = MASTER;

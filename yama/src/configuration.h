@@ -1,10 +1,3 @@
-/*
- * configuration.h
- *
- *  Created on: 11/9/2017
- *      Author: utnso
- */
-
 #ifndef YAMA_CONFIGURATION_H_
 #define YAMA_CONFIGURATION_H_
 
@@ -12,20 +5,21 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "../../common/log.h"
+#include "../../common/global.h"
 
 // Configuracion
 typedef struct{
-	char* yama_ip;
-	int yama_puerto;
-	int yama_retardo_planificacion;
-	char* yama_algoritmo_balanceo;
 	char* log_file;
 	char* log_name;
+	char* puerto;
+	char* yamafs_ip;
+	char* yamafs_puerto;
+	int retardo_planificacion;
+	char* algoritmo_balanceo;
 } yama_t;
-
 
 yama_t *config_leer(const char* path);
 
 void config_liberar(yama_t* config);
 
-#endif /* SRC_CONFIGURATION_H_ */
+#endif /* YAMA_CONFIGURATION_H_ */

@@ -10,7 +10,7 @@
 typedef struct{
 	char* log_file;
 	char* log_name;
-	int puerto;
+	char* puerto;
 } yamafs_t;
 
 yamafs_t *config_leer(const char* path);

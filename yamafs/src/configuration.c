@@ -10,8 +10,7 @@
 static t_config* c;
 
 yamafs_t *config_leer(const char* path) {
-	if(access(path, F_OK) == -1 ) {
-		log_msg_error("No existe el archivo de configuracion %s", path);
+	if(!global_get_file_exist(path)) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -20,7 +19,7 @@ yamafs_t *config_leer(const char* path) {
 
 	config->log_file = config_get_string_value(c, "LOG_FILE");
 	config->log_name = config_get_string_value(c, "LOG_NAME");
-	config->puerto = config_get_int_value(c, "PUERTO");
+	config->puerto = config_get_string_value(c, "PUERTO");
 
 	return config;
 }

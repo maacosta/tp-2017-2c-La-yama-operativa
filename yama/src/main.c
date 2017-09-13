@@ -1,11 +1,13 @@
 #include "main.h"
-#include "../../common/log.h"
 
+yama_t *config;
 
 int main(int argc, char **argv) {
-	log_init("log", "yama", true);
+	config = config_leer("metadata");
 
-	socket_t srvfd = socket_listen("5000");
+	log_init(config->log_file, config->log_name, true);
+
+	socket_t srvfd = socket_listen(config->puerto);
 	log_msg_info("escuchando");
 
 	header_t cabecera;
