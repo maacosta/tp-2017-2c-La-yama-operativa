@@ -26,8 +26,8 @@ typedef struct {
 	unsigned char *payload;
 } packet_t;
 
-size_t protocol_handshake_send(socket_t sockfd, process_t process);
+bool protocol_handshake_send(socket_t sockfd, process_t process);
 
-size_t protocol_handshake_receive(socket_t sockfd, header_t *header);
+bool protocol_handshake_receive(socket_t sockfd, header_t *header);
 
 #endif /* COMMON_PROTOCOL_H_ */
