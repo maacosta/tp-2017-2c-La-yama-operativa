@@ -101,12 +101,15 @@ socket_t socket_accept(socket_t sv_sock) {
 
 	socket_t cli_sock = accept(sv_sock, &rem_addr, &addr_size);
 
-	if(cli_sock != -1) {
-		struct sockaddr_in *addr_in = (struct sockaddr_in*) &rem_addr;
-		char remote_ip[INET_ADDRSTRLEN];
+	struct sockaddr_in *addr_in = (struct sockaddr_in*)&rem_addr;
+	char remote_ip[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &addr_in->sin_addr, remote_ip, INET_ADDRSTRLEN);
 
-		inet_ntop(AF_INET, &addr_in->sin_addr, remote_ip, INET_ADDRSTRLEN);
+	if(cli_sock != -1) {
 		log_msg_info("Cliente %s conectado al socket %d", remote_ip, cli_sock);
+	}
+	else {
+		log_msg_error("Error al aceptar el cliente desde %s", remote_ip);
 	}
 
 	return cli_sock;
