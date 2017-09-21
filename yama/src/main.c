@@ -8,18 +8,20 @@ int num_sig_job;
 /*
  * Conectar con FS, considerar que si el handshake falla puede que esté en un estado no estable
  */
-void conectar_con_yamafs(yama_t* config) {
-	if((sockFS = socket_connect(config->yamafs_ip, config->yamafs_puerto)) == -1) {
+socket_t conectar_con_yamafs(yama_t* config) {
+	socket_t sock;
+	if((sock = socket_connect(config->yamafs_ip, config->yamafs_puerto)) == -1) {
 		exit(EXIT_FAILURE);
 	}
 
-	if(!protocol_handshake_send(sockFS, YAMA)) {
+	if(!protocol_handshake_send(sock, YAMA)) {
 		exit(EXIT_FAILURE);
 	}
 	header_t header;
-	if(!protocol_handshake_receive(sockFS, &header)) {
+	if(!protocol_handshake_receive(sock, &header)) {
 		exit(EXIT_FAILURE);
 	}
+	return sock;
 }
 
 void crear_servidor(yama_t* config) {
@@ -76,7 +78,7 @@ int main(int argc, char **argv) {
 
 	log_init(config->log_file, config->log_name, true);
 
-	//conectar_con_yamafs(config);
+	sockFS = conectar_con_yamafs(config);
 
 	crear_servidor(config);
 
