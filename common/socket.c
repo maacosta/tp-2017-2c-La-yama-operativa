@@ -88,11 +88,7 @@ socket_t socket_init(const char *ip, const char *port) {
 }
 
 socket_t socket_listen(const char *port) {
-	socket_t sv_sock = socket_init(NULL, port);
-	socket_t cli_sock = socket_accept(sv_sock);
-
-	socket_close(sv_sock);
-	return cli_sock;
+	return socket_init(NULL, port);
 }
 
 socket_t socket_accept(socket_t sv_sock) {

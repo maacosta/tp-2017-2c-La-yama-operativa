@@ -25,22 +25,23 @@ socket_t conectar_con_yamafs(yama_t* config) {
 }
 
 void crear_servidor(yama_t* config) {
-	socket_t cli_sock, cli_i;
+	socket_t cli_sock, cli_i, fdmax;
 	header_t cabecera;
 	fd_set active_fd_set, read_fd_set;
 
-	sockSRV = socket_init(NULL, config->puerto);
+	sockSRV = socket_listen(config->puerto);
 
 	FD_ZERO(&active_fd_set);
 	FD_SET(sockSRV, &active_fd_set);
+	fdmax = sockSRV;
 
 	while(true) {
 		read_fd_set = active_fd_set;
-		if(select(sockSRV + 1, &read_fd_set, NULL, NULL, NULL) == -1) {
+		if(select(fdmax + 1, &read_fd_set, NULL, NULL, NULL) == -1) {
 			break;
 		}
 
-		for(cli_i = 0; cli_i <= sockSRV + 1; cli_i++) {
+		for(cli_i = 0; cli_i <= fdmax; cli_i++) {
 			if(!FD_ISSET(cli_i, &read_fd_set)) continue;
 
 			if(cli_i == sockSRV) {
@@ -58,6 +59,7 @@ void crear_servidor(yama_t* config) {
 				}
 
 				FD_SET (cli_sock, &active_fd_set);
+				fdmax = fdmax > cli_i ? fdmax : cli_i;
 			}
 			else {
 				/* Data arriving on an already-connected socket. */
