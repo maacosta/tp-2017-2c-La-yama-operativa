@@ -50,7 +50,19 @@ size_t protocol_receive(socket_t sockfd, packet_t *packet) {
 		log_msg_error("Error recibiendo datos cabecera del socket %d", sockfd);
 	}
 	if(packet->header.size > 0) {
-		;
+		packet->payload = malloc(packet->header.size * sizeof(unsigned char));
+		size += socket_receive_bytes(packet->payload, packet->header.size, sockfd);
+	}
+	return size;
+}
+
+size_t protocol_send(socket_t sockfd, packet_t *packet) {
+	size_t size = send_header(sockfd, packet->header);
+	if(size <= 0) {
+		log_msg_info("Error enviando datos al socket %d", sockfd);
+	}
+	if(packet->header.size > 0) {
+		size += socket_send_bytes(packet->payload, packet->header.size, sockfd);
 	}
 	return size;
 }

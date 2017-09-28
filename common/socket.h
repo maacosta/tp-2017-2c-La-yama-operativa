@@ -15,11 +15,6 @@
 
 typedef int socket_t;
 
-typedef struct {
-    fd_set set;
-    socket_t max;
-} fdset_t;
-
 /**
  * Si se indica la IP, crea un socket y lo conecta al servidor de la IP y
  * puerto especificados. Si no se indica la IP, crea un socket y lo prepara
@@ -37,6 +32,16 @@ socket_t socket_init(const char *ip, const char *port);
  * @return Descriptor del socket del cliente.
  */
 socket_t socket_listen(const char *port);
+
+bool socket_select(fd_set *read_fdset);
+
+int socket_fdmax();
+
+bool socket_fdisset(socket_t sock, fd_set *fd);
+
+void socket_fdset(socket_t sock);
+
+void socket_fdclear(socket_t sock);
 
 /*
  * Función bloqueante que espera por conexiones en un socket servidor y las
@@ -88,19 +93,6 @@ ssize_t socket_receive_string(char *message, socket_t sockfd);
  * @return Número de bytes recibidos (-1 si hubo error).
  */
 ssize_t socket_receive_bytes(unsigned char *message, size_t size, socket_t sockfd);
-
-/**
- * Crea un conjunto de sockets para ser usado por socket_select().
- * @return Conjunto de sockets.
- */
-fdset_t socket_set_create(void);
-
-/**
- * Agrega un socket a un conjunto de sockets.
- * @param fd socket a agregar.
- * @param fds conjunto de sockets.
- */
-void socket_set_add(socket_t fd, fdset_t *fds);
 
 /**
  * Cierra un socket abierto con socket_listen() o socket_connect().

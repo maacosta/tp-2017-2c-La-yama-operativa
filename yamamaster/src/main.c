@@ -19,12 +19,24 @@ socket_t conectar_con_yama(yamamaster_t *config) {
 	return sock;
 }
 
+#define BUFFER_CAPACITY 1024
 int main(int argc, char **argv) {
 	config = config_leer("metadata");
 
 	log_init(config->log_file, config->log_name, true);
 
 	sockYAMA = conectar_con_yama(config);
+
+	unsigned char buffer[BUFFER_CAPACITY];
+	int s = serial_pack(buffer, "h", 8);
+	packet_t paquete;
+	paquete.header.process = MASTER;
+	paquete.header.operation = OP_MASTER_INICIAR_TAREA;
+	paquete.header.size = s;
+	paquete.payload = buffer;
+
+	protocol_send(sockYAMA, &paquete);
+	printf("envio de datos por protocolo con payload = %d\n", s);
 
 	return EXIT_SUCCESS;
 }

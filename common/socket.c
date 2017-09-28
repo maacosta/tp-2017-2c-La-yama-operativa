@@ -87,8 +87,41 @@ socket_t socket_init(const char *ip, const char *port) {
 	return sockfd;
 }
 
+static fd_set active_fdset;
+static socket_t fdmax;
+
 socket_t socket_listen(const char *port) {
-	return socket_init(NULL, port);
+	socket_t sock = socket_init(NULL, port);
+	FD_ZERO(&active_fdset);
+	FD_SET(sock, &active_fdset);
+	fdmax = sock;
+	return sock;
+}
+
+bool socket_select(fd_set *read_fdset) {
+	*read_fdset = active_fdset;
+	if(select(fdmax + 1, read_fdset, NULL, NULL, NULL) == -1) {
+		log_msg_error(strerror(errno));
+		return false;
+	}
+	return true;
+}
+
+int socket_fdmax() {
+	return fdmax;
+}
+
+bool socket_fdisset(socket_t sock, fd_set *fd) {
+	return FD_ISSET(sock, fd);
+}
+
+void socket_fdset(socket_t sock) {
+	FD_SET(sock, &active_fdset);
+	fdmax = fdmax > sock ? fdmax : sock;
+}
+
+void socket_fdclear(socket_t sock) {
+	FD_CLR(sock, &active_fdset);
 }
 
 socket_t socket_accept(socket_t sv_sock) {
@@ -117,7 +150,6 @@ socket_t socket_connect(const char *ip, const char *port) {
 
 static size_t sendall(socket_t sockfd, const unsigned char *buf, size_t len) {
 	size_t bytes_sent = 0;
-
 	while(bytes_sent < len) {
 		ssize_t n = send(sockfd, buf + bytes_sent, len - bytes_sent, 0);
 		if(n == -1) {
@@ -125,29 +157,24 @@ static size_t sendall(socket_t sockfd, const unsigned char *buf, size_t len) {
 		}
 		bytes_sent += n;
 	}
-
 	return bytes_sent;
 }
 
 size_t socket_send_string(const char *message, socket_t sockfd) {
 	size_t bytes_sent = sendall(sockfd, (const unsigned char *) message, strlen(message) + 1);
 	//log_inform("Sent string: \"%s\"", message);
-
 	return bytes_sent;
 }
 
 size_t socket_send_bytes(const unsigned char *message, size_t size, socket_t sockfd) {
 	size_t bytes_sent = sendall(sockfd, message, size);
-	if(bytes_sent > 0) {
-		//log_inform("Sent %ld bytes", bytes_sent);
-	}
-
+	if(bytes_sent > 0)
+		;//log_inform("Sent %ld bytes", bytes_sent);
 	return bytes_sent;
 }
 
 static ssize_t recvall(socket_t sockfd, unsigned char *buf, size_t len) {
 	size_t bytes_received = 0;
-
 	while(bytes_received < len) {
 		ssize_t n = recv(sockfd, buf + bytes_received, len - bytes_received, 0);
 		if(n == -1) return n;
@@ -160,40 +187,21 @@ static ssize_t recvall(socket_t sockfd, unsigned char *buf, size_t len) {
 			break;
 		}
 	}
-
 	return bytes_received;
 }
 
 ssize_t socket_receive_string(char *message, socket_t sockfd) {
 	ssize_t bytes_received = recvall(sockfd, (unsigned char *) message, BUFFER_CAPACITY);
-	if(bytes_received > 0) {
-		//log_inform("Received string: \"%s\"", message);
-	}
-
+	if(bytes_received > 0)
+		;//log_inform("Received string: \"%s\"", message);
 	return bytes_received;
 }
 
 ssize_t socket_receive_bytes(unsigned char *message, size_t size, socket_t sockfd) {
 	ssize_t bytes_received = recvall(sockfd, message, size);
-	if(bytes_received > 0) {
-		//log_inform("Received %ld bytes", bytes_received);
-	}
-
+	if(bytes_received > 0)
+		;//log_inform("Received %ld bytes", bytes_received);
 	return bytes_received;
-}
-
-fdset_t socket_set_create(void) {
-	fdset_t fds;
-	fds.max = -1;
-	FD_ZERO(&fds.set);
-	return fds;
-}
-
-void socket_set_add(socket_t fd, fdset_t *fds) {
-	FD_SET(fd, &fds->set);
-	if(fd > fds->max) {
-		fds->max = fd;
-	}
 }
 
 void socket_close(socket_t sockfd) {

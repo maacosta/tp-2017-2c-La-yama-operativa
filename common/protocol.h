@@ -12,7 +12,8 @@
  */
 typedef enum {
 	OP_ERROR = 0,		//Se utiliza para responder cualquier error, el detalle queda en el emisor
-	OP_HANDSHAKE = 1
+	OP_HANDSHAKE = 1,
+	OP_MASTER_INICIAR_TAREA = 2
 } operation_t;
 
 typedef struct {
@@ -29,5 +30,9 @@ typedef struct {
 bool protocol_handshake_send(socket_t sockfd, process_t process);
 
 bool protocol_handshake_receive(socket_t sockfd, header_t *header);
+
+size_t protocol_receive(socket_t sockfd, packet_t *packet);
+
+size_t protocol_send(socket_t sockfd, packet_t *packet);
 
 #endif /* COMMON_PROTOCOL_H_ */

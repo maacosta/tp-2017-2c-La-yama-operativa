@@ -25,24 +25,18 @@ socket_t conectar_con_yamafs(yama_t* config) {
 }
 
 void crear_servidor(yama_t* config) {
-	socket_t cli_sock, cli_i, fdmax;
 	header_t cabecera;
-	fd_set active_fd_set, read_fd_set;
+	packet_t paquete;
+	socket_t cli_sock, cli_i;
+	fd_set read_fdset;
 
 	sockSRV = socket_listen(config->puerto);
 
-	FD_ZERO(&active_fd_set);
-	FD_SET(sockSRV, &active_fd_set);
-	fdmax = sockSRV;
-
 	while(true) {
-		read_fd_set = active_fd_set;
-		if(select(fdmax + 1, &read_fd_set, NULL, NULL, NULL) == -1) {
-			break;
-		}
+		if(!socket_select(&read_fdset)) break;
 
-		for(cli_i = 0; cli_i <= fdmax; cli_i++) {
-			if(!FD_ISSET(cli_i, &read_fd_set)) continue;
+		for(cli_i = 0; cli_i <= socket_fdmax(); cli_i++) {
+			if(!socket_fdisset(cli_i, &read_fdset)) continue;
 
 			if(cli_i == sockSRV) {
 				/* Connection request on original socket. */
@@ -57,18 +51,26 @@ void crear_servidor(yama_t* config) {
 					socket_close(cli_sock);
 					continue;
 				}
+				if(!protocol_handshake_send(cli_sock, YAMA)) {
+					socket_close(cli_sock);
+					continue;
+				}
 
-				FD_SET (cli_sock, &active_fd_set);
-				fdmax = fdmax > cli_i ? fdmax : cli_i;
+				socket_fdset(cli_sock);
 			}
 			else {
-				/* Data arriving on an already-connected socket. */
-				/* leer sobre el socket i, cerrar si es necesario y sacarlo del fd
-				if (read_from_client (cli_i) < 0) {
-					close (cli_i);
-					FD_CLR (cli_i, &active_fd_set);
+				if(!protocol_receive(cli_i, &paquete)) {
+					socket_close(cli_i);
+					socket_fdclear(cli_i);
+					continue;
 				}
-				*/
+				switch(paquete.header.operation) {
+					case OP_MASTER_INICIAR_TAREA: {
+						int n;
+						serial_unpack(paquete.payload, "h", &n);
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -80,7 +82,7 @@ int main(int argc, char **argv) {
 
 	log_init(config->log_file, config->log_name, true);
 
-	sockFS = conectar_con_yamafs(config);
+	//sockFS = conectar_con_yamafs(config);
 
 	crear_servidor(config);
 
