@@ -16,4 +16,8 @@ typedef enum {
 
 bool global_get_file_exist(const char* path);
 
+void global_set_process(process_t process);
+
+process_t global_get_process();
+
 #endif /* global_h */

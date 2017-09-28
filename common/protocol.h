@@ -27,7 +27,9 @@ typedef struct {
 	unsigned char *payload;
 } packet_t;
 
-bool protocol_handshake_send(socket_t sockfd, process_t process);
+header_t protocol_get_header(unsigned char operation);
+
+bool protocol_handshake_send(socket_t sockfd);
 
 bool protocol_handshake_receive(socket_t sockfd, header_t *header);
 

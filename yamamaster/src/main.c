@@ -1,7 +1,21 @@
 #include "main.h"
 
+unsigned char buffer[1024];
 yamamaster_t *config;
 socket_t sockYAMA;
+char *p_transformador, *p_reductor, *p_origen, *p_destino;
+
+void validar_parametros(int argc, char **argv) {
+	if(argc != 5) {
+		log_msg_error("Debe indicar 4 parametros: transformador reductor origen destino");
+		exit(EXIT_FAILURE);
+	}
+	p_transformador = argv[1];
+	p_reductor = argv[2];
+	p_origen = argv[3];
+	p_destino = argv[4];
+	log_msg_info("Parametros %s %s %s %s", p_transformador, p_reductor, p_origen, p_destino);
+}
 
 socket_t conectar_con_yama(yamamaster_t *config) {
 	socket_t sock;
@@ -9,7 +23,7 @@ socket_t conectar_con_yama(yamamaster_t *config) {
 		exit(EXIT_FAILURE);
 	}
 
-	if(!protocol_handshake_send(sock, MASTER)) {
+	if(!protocol_handshake_send(sock)) {
 		exit(EXIT_FAILURE);
 	}
 	header_t header;
@@ -19,24 +33,23 @@ socket_t conectar_con_yama(yamamaster_t *config) {
 	return sock;
 }
 
-#define BUFFER_CAPACITY 1024
-int main(int argc, char **argv) {
-	config = config_leer("metadata");
+void op_iniciar_tarea(socket_t sock) {
+	header_t cabecera = protocol_get_header(OP_MASTER_INICIAR_TAREA);
+	packet_t paquete;
+	paquete.header = cabecera;
+	paquete.header.size = serial_pack(buffer, "s", p_origen);
+	paquete.payload = buffer;
+	protocol_send(sock, &paquete);
+}
 
+int main(int argc, char **argv) {
+	global_set_process(MASTER);
+	validar_parametros(argc, argv);
+	config = config_leer("metadata");
 	log_init(config->log_file, config->log_name, true);
 
 	sockYAMA = conectar_con_yama(config);
-
-	unsigned char buffer[BUFFER_CAPACITY];
-	int s = serial_pack(buffer, "h", 8);
-	packet_t paquete;
-	paquete.header.process = MASTER;
-	paquete.header.operation = OP_MASTER_INICIAR_TAREA;
-	paquete.header.size = s;
-	paquete.payload = buffer;
-
-	protocol_send(sockYAMA, &paquete);
-	printf("envio de datos por protocolo con payload = %d\n", s);
+	op_iniciar_tarea(sockYAMA);
 
 	return EXIT_SUCCESS;
 }

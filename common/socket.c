@@ -74,6 +74,7 @@ socket_t socket_init(const char *ip, const char *port) {
 	}
 	if(ret == -1) {
 		log_msg_error(strerror(errno));
+		sockfd = ret;
 	}
 
 	if(ip == NULL) {

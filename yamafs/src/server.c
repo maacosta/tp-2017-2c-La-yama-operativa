@@ -1,10 +1,3 @@
-/*
- * server.c
- *
- *  Created on: 19/9/2017
- *      Author: utnso
- */
-
 #include "server.h"
 
 void iniciar_server(void* argumentos) {
@@ -65,7 +58,7 @@ void iniciar_server(void* argumentos) {
 						if(cabecera.process == YAMA) {
 							if (fsOperativo) {
 
-								if(!protocol_handshake_send(newfd, FS)) {
+								if(!protocol_handshake_send(newfd)) {
 									log_msg_error("fallo el handshake send con YAMA");
 									socket_close(newfd);
 									//aca tambien tendría que limpiar a newfd de la master? FD_CLR(newfd, &master);
@@ -82,7 +75,7 @@ void iniciar_server(void* argumentos) {
 						}//Fin handshake con YAMA
 
 						if(cabecera.process == DATANODE){
-							if(!protocol_handshake_send(newfd, FS)) {
+							if(!protocol_handshake_send(newfd)) {
 								log_msg_error("fallo el handshake send con DATANODE");
 								socket_close(newfd);
 								//aca tambien tendría que limpiar a newfd de la master? FD_CLR(newfd, &master);

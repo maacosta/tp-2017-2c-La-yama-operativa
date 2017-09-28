@@ -2,17 +2,21 @@
 
 #define HEADER_SIZE 6
 
+header_t protocol_get_header(unsigned char operation) {
+	header_t header;
+	header.process = global_get_process();
+	header.operation = operation;
+	header.size = 0;
+	return header;
+}
 static size_t send_header(socket_t sockfd, header_t header) {
 	unsigned char buffer[HEADER_SIZE];
 	size_t size = serial_pack(buffer, "CCL", header.process, header.operation, header.size);
 	return socket_send_bytes(buffer, size, sockfd);
 }
 
-bool protocol_handshake_send(socket_t sockfd, process_t process) {
-	header_t header;
-	header.process = process;
-	header.operation = OP_HANDSHAKE;
-	header.size = 0;
+bool protocol_handshake_send(socket_t sockfd) {
+	header_t header = protocol_get_header(OP_HANDSHAKE);
 	size_t size = send_header(sockfd, header);
 	if(size > 0) {
 		log_msg_info("Handshake enviado a socket %d", sockfd);

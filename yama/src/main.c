@@ -14,7 +14,7 @@ socket_t conectar_con_yamafs(yama_t* config) {
 		exit(EXIT_FAILURE);
 	}
 
-	if(!protocol_handshake_send(sock, YAMA)) {
+	if(!protocol_handshake_send(sock)) {
 		exit(EXIT_FAILURE);
 	}
 	header_t header;
@@ -51,7 +51,7 @@ void crear_servidor(yama_t* config) {
 					socket_close(cli_sock);
 					continue;
 				}
-				if(!protocol_handshake_send(cli_sock, YAMA)) {
+				if(!protocol_handshake_send(cli_sock)) {
 					socket_close(cli_sock);
 					continue;
 				}
@@ -79,11 +79,11 @@ void crear_servidor(yama_t* config) {
 }
 
 int main(int argc, char **argv) {
+	global_set_process(YAMA);
 	config = config_leer("metadata");
-
 	log_init(config->log_file, config->log_name, true);
 
-	//sockFS = conectar_con_yamafs(config);
+	sockFS = conectar_con_yamafs(config);
 
 	crear_servidor(config);
 
