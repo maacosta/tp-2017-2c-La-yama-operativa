@@ -31,6 +31,9 @@ bool protocol_handshake_send(socket_t sockfd, process_t process);
 
 bool protocol_handshake_receive(socket_t sockfd, header_t *header);
 
+/**
+ * Recibe un paquete del socket. Tener en cuenta de liberar el payload de ser necesario
+ */
 size_t protocol_receive(socket_t sockfd, packet_t *packet);
 
 size_t protocol_send(socket_t sockfd, packet_t *packet);

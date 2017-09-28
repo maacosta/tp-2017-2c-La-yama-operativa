@@ -68,6 +68,7 @@ void crear_servidor(yama_t* config) {
 					case OP_MASTER_INICIAR_TAREA: {
 						int n;
 						serial_unpack(paquete.payload, "h", &n);
+						free(paquete.payload);
 						break;
 					}
 				}
