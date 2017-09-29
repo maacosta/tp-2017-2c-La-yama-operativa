@@ -27,7 +27,9 @@ typedef struct {
 	unsigned char *payload;
 } packet_t;
 
-header_t protocol_get_header(unsigned char operation);
+header_t protocol_get_header(unsigned char operation, unsigned long size);
+
+packet_t protocol_get_packet(header_t header, unsigned char* buffer);
 
 bool protocol_handshake_send(socket_t sockfd);
 
@@ -36,8 +38,10 @@ bool protocol_handshake_receive(socket_t sockfd, header_t *header);
 /**
  * Recibe un paquete del socket. Tener en cuenta de liberar el payload de ser necesario
  */
-size_t protocol_receive(socket_t sockfd, packet_t *packet);
+packet_t protocol_packet_receive(socket_t sockfd);
 
-size_t protocol_send(socket_t sockfd, packet_t *packet);
+bool protocol_packet_send(socket_t sockfd, packet_t *packet);
+
+void protocol_packet_free(packet_t *packet);
 
 #endif /* COMMON_PROTOCOL_H_ */

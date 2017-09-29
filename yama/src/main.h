@@ -5,6 +5,7 @@
 #include "../../common/socket.h"
 #include "../../common/protocol.h"
 #include "configuration.h"
+#include "server.h"
 
 typedef struct{
 	int job;

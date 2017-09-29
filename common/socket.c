@@ -7,7 +7,7 @@ static struct addrinfo *create_addrinfo(const char *ip, const char *port) {
 	if(port != NULL) {
 		int n = atoi(port);
 		if(n < 1024 && n > 65535) {
-			log_msg_error("El numero {%d} de puerto debe estar entre 1024 y 65535", n);
+			log_msg_error("El numero [ %d ] de puerto debe estar entre 1024 y 65535", n);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -47,7 +47,7 @@ socket_t socket_init(const char *ip, const char *port) {
 	for(cur = addr; cur != NULL; cur = cur->ai_next) {
 		sockfd = create_socket(cur);
 		if(sockfd == -1) continue;
-		log_msg_info("Socket %d creado", sockfd);
+		log_msg_info("Socket [ %d ] creado", sockfd);
 
 		if(ip == NULL) {
 			ret = bind(sockfd, cur->ai_addr, cur->ai_addrlen);
@@ -61,9 +61,9 @@ socket_t socket_init(const char *ip, const char *port) {
 		}
 
 		if(ip == NULL) {
-			log_msg_info("Escuchando en puerto %s", port);
+			log_msg_info("Escuchando en puerto [ %s ]", port);
 		} else {
-			log_msg_info("Conectado a %s:%s", ip, port);
+			log_msg_info("Conectado a [ %s:%s ]", ip, port);
 		}
 		break;
 	}
@@ -79,10 +79,10 @@ socket_t socket_init(const char *ip, const char *port) {
 
 	if(ip == NULL) {
 		if(listen(sockfd, SOCKET_BACKLOG) == -1) {
-			log_msg_error("Fallo la escucha en el puerto %s", port);
+			log_msg_error("Fallo la escucha en el puerto [ %s ]", port);
 			exit(EXIT_FAILURE);
 		}
-		log_msg_info("Escuchando en el puerto %s", port);
+		log_msg_info("Escuchando en el puerto [ %s ]", port);
 	}
 
 	return sockfd;
@@ -136,10 +136,10 @@ socket_t socket_accept(socket_t sv_sock) {
 	inet_ntop(AF_INET, &addr_in->sin_addr, remote_ip, INET_ADDRSTRLEN);
 
 	if(cli_sock != -1) {
-		log_msg_info("Cliente %s conectado al socket %d", remote_ip, cli_sock);
+		log_msg_info("Cliente [ %s ] conectado al socket [ %d ]", remote_ip, cli_sock);
 	}
 	else {
-		log_msg_error("Error al aceptar el cliente desde %s", remote_ip);
+		log_msg_error("Error al aceptar el cliente desde [ %s ]", remote_ip);
 	}
 
 	return cli_sock;
@@ -180,7 +180,7 @@ static ssize_t recvall(socket_t sockfd, unsigned char *buf, size_t len) {
 		ssize_t n = recv(sockfd, buf + bytes_received, len - bytes_received, 0);
 		if(n == -1) return n;
 		if(n == 0) {
-			log_msg_error("La conexion sobre el socket %d se cerro", sockfd);
+			log_msg_error("La conexion sobre el socket [ %d ] se cerro", sockfd);
 			return 0;
 		}
 		bytes_received += n;
@@ -211,6 +211,6 @@ void socket_close(socket_t sockfd) {
 	}
 	int res = close(sockfd);
 	if(res != 1) {
-		log_msg_info("Socket %d cerrado", sockfd);
+		log_msg_info("Socket [ %d ] cerrado", sockfd);
 	}
 }
