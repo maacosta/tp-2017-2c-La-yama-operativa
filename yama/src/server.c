@@ -30,9 +30,8 @@ static bool procesar_operaciones(socket_t cliente) {
 		return false;
 	}
 	switch(packet.header.operation) {
-		case OP_MASTER_INICIAR_TAREA: {
-			char n[250];
-			serial_unpack(packet.payload, "s", &n);
+		case OP_MASTER_TRANSFORMACION: {
+			operation_iniciar_tarea(&packet);
 			break;
 		}
 		default: {
@@ -47,12 +46,12 @@ static bool procesar_operaciones(socket_t cliente) {
 
 void server_create(yama_t* config, socket_t sockfs) {
 	sockFS = sockfs;
-	header_t cabecera;
-	packet_t paquete;
-	socket_t cli_sock, cli_i;
+	socket_t cli_i;
 	fd_set read_fdset;
 
 	sockSRV = socket_listen(config->puerto);
+
+	operation_init(config, sockSRV, sockFS);
 
 	while(true) {
 		if(!socket_select(&read_fdset)) break;

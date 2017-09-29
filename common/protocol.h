@@ -12,8 +12,12 @@
  */
 typedef enum {
 	OP_ERROR = 0,		//Se utiliza para responder cualquier error, el detalle queda en el emisor
-	OP_HANDSHAKE = 1,
-	OP_MASTER_INICIAR_TAREA = 2
+	OP_HANDSHAKE,
+	OP_MASTER_TRANSFORMACION,
+	OP_MASTER_REDUCCION_LOCAL,
+	OP_MASTER_REDUCCION_GLOBAL,
+	OP_MASTER_ALMACENAMIENTO_FINAL,
+	OP_YAMA_INFO_ARCHIVO,
 } operation_t;
 
 typedef struct {

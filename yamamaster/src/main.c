@@ -34,7 +34,7 @@ socket_t conectar_con_yama(yamamaster_t *config) {
 }
 
 void op_iniciar_tarea(socket_t sock) {
-	header_t cabecera = protocol_get_header(OP_MASTER_INICIAR_TAREA, serial_pack(buffer, "s", p_origen));
+	header_t cabecera = protocol_get_header(OP_MASTER_TRANSFORMACION, serial_pack(buffer, "s", p_origen));
 	packet_t paquete = protocol_get_packet(cabecera, &buffer);
 	protocol_packet_send(sock, &paquete);
 }
