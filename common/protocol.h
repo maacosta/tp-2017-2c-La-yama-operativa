@@ -12,7 +12,12 @@
  */
 typedef enum {
 	OP_ERROR = 0,		//Se utiliza para responder cualquier error, el detalle queda en el emisor
-	OP_HANDSHAKE = 1
+	OP_HANDSHAKE,
+	OP_MASTER_TRANSFORMACION,
+	OP_MASTER_REDUCCION_LOCAL,
+	OP_MASTER_REDUCCION_GLOBAL,
+	OP_MASTER_ALMACENAMIENTO_FINAL,
+	OP_YAMA_INFO_ARCHIVO,
 } operation_t;
 
 typedef struct {
@@ -26,8 +31,21 @@ typedef struct {
 	unsigned char *payload;
 } packet_t;
 
-bool protocol_handshake_send(socket_t sockfd, process_t process);
+header_t protocol_get_header(unsigned char operation, unsigned long size);
+
+packet_t protocol_get_packet(header_t header, unsigned char* buffer);
+
+bool protocol_handshake_send(socket_t sockfd);
 
 bool protocol_handshake_receive(socket_t sockfd, header_t *header);
+
+/**
+ * Recibe un paquete del socket. Tener en cuenta de liberar el payload de ser necesario
+ */
+packet_t protocol_packet_receive(socket_t sockfd);
+
+bool protocol_packet_send(socket_t sockfd, packet_t *packet);
+
+void protocol_packet_free(packet_t *packet);
 
 #endif /* COMMON_PROTOCOL_H_ */
