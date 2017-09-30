@@ -2,6 +2,11 @@
 
 static socket_t sockSRV;
 static socket_t sockFS;
+t_list *estados_master;
+
+static void liberar_estado_master(estado_master_t *estadoMaster) {
+	free(estadoMaster);
+}
 
 static socket_t aceptar_cliente(socket_t server) {
 	socket_t cliente = socket_accept(server);
@@ -31,7 +36,16 @@ static bool procesar_operaciones(socket_t cliente) {
 	}
 	switch(packet.header.operation) {
 		case OP_MASTER_TRANSFORMACION: {
-			operation_iniciar_tarea(&packet);
+			operation_iniciar_tarea(&packet, estados_master, cliente);
+			break;
+		}
+		case OP_MASTER_REDUCCION_LOCAL: {
+			break;
+		}
+		case OP_MASTER_REDUCCION_GLOBAL: {
+			break;
+		}
+		case OP_MASTER_ALMACENAMIENTO_FINAL: {
 			break;
 		}
 		default: {
@@ -44,7 +58,7 @@ static bool procesar_operaciones(socket_t cliente) {
 	return true;
 }
 
-void server_create(yama_t* config, socket_t sockfs) {
+void server_crear(yama_t* config, socket_t sockfs) {
 	sockFS = sockfs;
 	socket_t cli_i;
 	fd_set read_fdset;
@@ -53,6 +67,7 @@ void server_create(yama_t* config, socket_t sockfs) {
 
 	operation_init(config, sockSRV, sockFS);
 
+	estados_master = list_create();
 	while(true) {
 		if(!socket_select(&read_fdset)) break;
 
@@ -73,4 +88,8 @@ void server_create(yama_t* config, socket_t sockfs) {
 		}
 	}
 	socket_close(sockSRV);
+}
+
+void server_liberar() {
+	list_destroy_and_destroy_elements(estados_master, (void*)liberar_estado_master);
 }

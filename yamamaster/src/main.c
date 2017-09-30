@@ -1,6 +1,6 @@
 #include "main.h"
 
-unsigned char buffer[1024];
+unsigned char buffer[4096];
 yamamaster_t *config;
 socket_t sockYAMA;
 char *p_transformador, *p_reductor, *p_origen, *p_destino;

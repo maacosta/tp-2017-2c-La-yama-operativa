@@ -28,7 +28,10 @@ int main(int argc, char **argv) {
 
 	//socket_t sockFS = conectar_con_yamafs(config);
 	socket_t sockFS = 0;
-	server_create(config, sockFS);
+	server_crear(config, sockFS);
+
+	server_liberar();
+	config_liberar(config);
 
 	return EXIT_SUCCESS;
 }
