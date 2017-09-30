@@ -21,6 +21,7 @@ struct arg_struct {
 #include "configuration.h"
 #include <pthread.h>
 
+
 bool fsOperativo;
 
 bool yamaEstaConectada;

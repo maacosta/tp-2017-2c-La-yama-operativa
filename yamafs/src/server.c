@@ -7,16 +7,19 @@ void server_crear(yamafs_t *config) {
 	struct arg_struct args;
 	args.puerto_listen = config->puerto;
 
-	pthread_create(&th_server, NULL, (void*)server_iniciar, (void*) &args);
 
-	pthread_join(th_server, NULL);
+	pthread_create(&th_server, NULL, (void*)server_iniciar, (void*) config->puerto);
+
+
 }
 
-void server_iniciar(void* argumentos) {
+//void server_iniciar(void* argumentos) {
+void server_iniciar(void* puerto) {
 
-	struct arg_struct *args = argumentos;
 
-	char* puerto_listen = args->puerto_listen;
+	char* puerto_listen = puerto;
+	//printf("el prueto es %d\n",atoi(puerto_listen));
+
 	fd_set master;    // master file descriptor list
 	fd_set read_fds;  // temp file descriptor list for select()
 	int fdmax;        // maximum file descriptor number
@@ -30,7 +33,7 @@ void server_iniciar(void* argumentos) {
 	FD_ZERO(&master);    // clear the master and temp sets
 	FD_ZERO(&read_fds);
 
-	// Crea un socket de escucha y lo pone
+
 	int listen_socket = socket_listen(puerto_listen);
 
 	// add the listener to the master set
@@ -40,6 +43,7 @@ void server_iniciar(void* argumentos) {
 	fdmax = listen_socket; // so far, it's this one
 
 	while (1) {
+
 		read_fds = master; // copy it
 		if (select(fdmax + 1, &read_fds, NULL, NULL, NULL) == -1) {
 			//log_error_consola("Fallo el select");
