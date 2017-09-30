@@ -1,7 +1,22 @@
 #include "server.h"
 
-void iniciar_server(void* argumentos) {
 
+void server_crear(yamafs_t *config) {
+	pthread_t th_server;
+
+	struct arg_struct args;
+	args.puerto_listen = config->puerto;
+
+	pthread_create(&th_server, NULL, (void*)server_iniciar, (void*) &args);
+
+	pthread_join(th_server, NULL);
+}
+
+void server_iniciar(void* argumentos) {
+
+	struct arg_struct *args = argumentos;
+
+	char* puerto_listen = args->puerto_listen;
 	fd_set master;    // master file descriptor list
 	fd_set read_fds;  // temp file descriptor list for select()
 	int fdmax;        // maximum file descriptor number
@@ -16,7 +31,7 @@ void iniciar_server(void* argumentos) {
 	FD_ZERO(&read_fds);
 
 	// Crea un socket de escucha y lo pone
-	int listen_socket = socket_listen(3009);
+	int listen_socket = socket_listen(puerto_listen);
 
 	// add the listener to the master set
 	FD_SET(listen_socket, &master);

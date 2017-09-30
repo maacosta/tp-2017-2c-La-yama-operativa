@@ -26,3 +26,9 @@ yamaDataNodo_t *config_leer(const char* path) {
 
 	return config;
 }
+
+void config_liberar(yamaDataNodo_t* config) {
+	config_destroy(c);
+	free(config);
+}
+

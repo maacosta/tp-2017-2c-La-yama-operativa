@@ -5,5 +5,6 @@
 #include "../../common/global.h"
 #include "configuration.h"
 #include "consola.h"
+#include "server.h"
 
 #endif /* MAIN_YAMAFS_H_ */
