@@ -1,6 +1,7 @@
 #ifndef COMMON_SERIAL_STRING_H_
 #define COMMON_SERIAL_STRING_H_
 
+#include <stdlib.h>
 #include <string.h>
 #include <commons/string.h>
 

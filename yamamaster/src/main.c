@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
 	sockYAMA = conectar_con_yama(config);
 
-	ejecutar_transformacion(sockYAMA);
+	ejecutar_transformacion(sockYAMA, p_transformador, p_origen);
 
 	return EXIT_SUCCESS;
 }

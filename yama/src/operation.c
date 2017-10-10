@@ -13,7 +13,7 @@ void operation_init(yama_t* c, socket_t sockyama, socket_t sockfs) {
 
 bool operation_iniciar_tarea(packet_t *packet, t_list *estados_master, socket_t cliente) {
 	char archivo_a_procesar[250];
-	serial_unpack(packet->payload, "s", &archivo_a_procesar);
+	serial_string_unpack(packet->payload, "s", &archivo_a_procesar);
 
 	log_msg_info("Etapa Transformacion: archivo [ %s ]", archivo_a_procesar);
 

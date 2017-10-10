@@ -25,7 +25,7 @@ size_t serial_string_pack(char *buf, char *format, ...) {
 	size_t len = string_length(b);
 	memcpy(buf, b, len + 1);
 	free(b);
-	return len;
+	return len + 1;
 }
 
 void serial_string_unpack(char *buf, char *format, ...) {
