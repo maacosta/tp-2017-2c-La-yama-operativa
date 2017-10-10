@@ -33,11 +33,6 @@ socket_t conectar_con_yama(yamamaster_t *config) {
 	return sock;
 }
 
-void op_iniciar_tarea(socket_t sock) {
-	header_t cabecera = protocol_get_header(OP_MASTER_TRANSFORMACION, serial_pack(buffer, "s", p_origen));
-	packet_t paquete = protocol_get_packet(cabecera, &buffer);
-	protocol_packet_send(sock, &paquete);
-}
 
 int main(int argc, char **argv) {
 	global_set_process(MASTER);
@@ -46,7 +41,8 @@ int main(int argc, char **argv) {
 	log_init(config->log_file, config->log_name, true);
 
 	sockYAMA = conectar_con_yama(config);
-	op_iniciar_tarea(sockYAMA);
+
+	ejecutar_transformacion(sockYAMA);
 
 	return EXIT_SUCCESS;
 }

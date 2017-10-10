@@ -4,6 +4,7 @@
 #include "log.h"
 #include "global.h"
 #include "serial.h"
+#include "serial_string.h"
 #include "socket.h"
 
 /* Operaciones del protocolo
@@ -21,8 +22,8 @@ typedef enum {
 } operation_t;
 
 typedef struct {
-	unsigned char process;
-	unsigned char operation;
+	unsigned int process;
+	unsigned int operation;
 	unsigned long size;
 } header_t;
 
@@ -31,7 +32,7 @@ typedef struct {
 	unsigned char *payload;
 } packet_t;
 
-header_t protocol_get_header(unsigned char operation, unsigned long size);
+header_t protocol_get_header(unsigned int operation, unsigned long size);
 
 packet_t protocol_get_packet(header_t header, unsigned char* buffer);
 
