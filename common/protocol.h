@@ -12,13 +12,26 @@
  * el contexto y el payload si lo hubieran determina el flujo de ejecucion
  */
 typedef enum {
+	//General
 	OP_ERROR = 0,		//Se utiliza para responder cualquier error, el detalle queda en el emisor
 	OP_HANDSHAKE,
-	OP_MASTER_TRANSFORMACION,
-	OP_MASTER_REDUCCION_LOCAL,
-	OP_MASTER_REDUCCION_GLOBAL,
-	OP_MASTER_ALMACENAMIENTO_FINAL,
-	OP_YAMA_INFO_ARCHIVO,
+
+	OP_YAM_Solicitar_Transformacion,
+	OP_YAM_Estado_Transformacion,
+	OP_YAM_Solicitar_Reduccion,
+	OP_YAM_Estado_Reduccion,
+	OP_YAM_Solicitar_Reduccion_Global,
+	OP_YAM_Estado_Reduccion_Global,
+	OP_YAM_Solicitar_Almacenamiento_Final,
+	OP_YAM_Estado_Almacenamiento_Final,
+
+	OP_WRK_Iniciar_Transformacion,
+	OP_WRK_Iniciar_Reduccion,
+	OP_WRK_Iniciar_Reduccion_Global,
+	OP_WRK_Iniciar_Almacenamiento_Final,
+
+	OP_FSY_Informacion_Archivo,
+	OP_FSY_Almacenar_Archivo,
 } operation_t;
 
 typedef struct {

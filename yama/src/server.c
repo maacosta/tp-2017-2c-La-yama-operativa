@@ -34,25 +34,29 @@ static bool procesar_operaciones(socket_t cliente) {
 		socket_close(cliente);
 		return false;
 	}
+
 	switch(packet.header.operation) {
-		case OP_MASTER_TRANSFORMACION: {
+		case OP_YAM_Solicitar_Transformacion:
 			operation_iniciar_tarea(&packet, estados_master, cliente);
 			break;
-		}
-		case OP_MASTER_REDUCCION_LOCAL: {
+		case OP_YAM_Estado_Transformacion:
 			break;
-		}
-		case OP_MASTER_REDUCCION_GLOBAL: {
+		case OP_YAM_Solicitar_Reduccion:
 			break;
-		}
-		case OP_MASTER_ALMACENAMIENTO_FINAL: {
+		case OP_YAM_Estado_Reduccion:
 			break;
-		}
-		default: {
+		case OP_YAM_Solicitar_Reduccion_Global:
+			break;
+		case OP_YAM_Estado_Reduccion_Global:
+			break;
+		case OP_YAM_Solicitar_Almacenamiento_Final:
+			break;
+		case OP_YAM_Estado_Almacenamiento_Final:
+			break;
+		default:
 			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
 			protocol_packet_free(&packet);
 			return false;
-		}
 	}
 	protocol_packet_free(&packet);
 	return true;

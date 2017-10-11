@@ -18,7 +18,7 @@ bool operation_iniciar_tarea(packet_t *packet, t_list *estados_master, socket_t 
 	log_msg_info("Etapa Transformacion: archivo [ %s ]", archivo_a_procesar);
 
 	//enviar consulta al FS sobre el archivo a procesar
-	header_t c = protocol_get_header(OP_YAMA_INFO_ARCHIVO, serial_pack(buffer, "s", &archivo_a_procesar));
+	header_t c = protocol_get_header(OP_FSY_Informacion_Archivo, serial_pack(buffer, "s", &archivo_a_procesar));
 	packet_t p = protocol_get_packet(c, &buffer);
 	if(!protocol_packet_send(sockFS, &p)) {
 		exit(EXIT_FAILURE);
