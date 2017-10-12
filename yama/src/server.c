@@ -37,7 +37,7 @@ static bool procesar_operaciones(socket_t cliente) {
 
 	switch(packet.header.operation) {
 		case OP_YAM_Solicitar_Transformacion:
-			operation_iniciar_tarea(&packet, estados_master, cliente);
+			operation_solicitar_transformacion(&packet, estados_master, cliente);
 			break;
 		case OP_YAM_Estado_Transformacion:
 			break;

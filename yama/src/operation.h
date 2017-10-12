@@ -11,6 +11,6 @@
 
 void operation_init(yama_t* config, socket_t sockyama, socket_t sockfs);
 
-bool operation_iniciar_tarea(packet_t *packet, t_list *estados_master, socket_t cliente);
+bool operation_solicitar_transformacion(packet_t *packet, t_list *estados_master, socket_t cliente);
 
 #endif /* SRC_OPERATION_H_ */
