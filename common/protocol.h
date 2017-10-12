@@ -7,6 +7,11 @@
 #include "serial_string.h"
 #include "socket.h"
 
+#define NOMBRE_NODO_SIZE 20
+#define IP_SIZE 16
+#define PUERTO_SIZE 7
+#define NOMBRE_ARCHIVO_TMP 50
+
 /* Operaciones del protocolo
  * Las respuestas viajan con el mismo codigo de operacion
  * el contexto y el payload si lo hubieran determina el flujo de ejecucion

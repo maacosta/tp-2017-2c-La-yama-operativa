@@ -1,6 +1,7 @@
 #ifndef SRC_TRANSFORMACION_H_
 #define SRC_TRANSFORMACION_H_
 
+#include "../../common/thread.h"
 #include "../../common/protocol.h"
 #include "../../common/socket.h"
 
