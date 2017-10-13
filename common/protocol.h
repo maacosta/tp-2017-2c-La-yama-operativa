@@ -7,10 +7,14 @@
 #include "serial_string.h"
 #include "socket.h"
 
+#define RESPUESTA_SIZE 6
 #define NOMBRE_NODO_SIZE 20
 #define IP_SIZE 16
 #define PUERTO_SIZE 7
+#define BLOQUE_SIZE_E 3
+#define BYTES_OCUPADOS_SIZE_E 10
 #define NOMBRE_ARCHIVO_TMP 50
+#define NOMBRE_ARCHIVO 50
 
 /* Operaciones del protocolo
  * Las respuestas viajan con el mismo codigo de operacion

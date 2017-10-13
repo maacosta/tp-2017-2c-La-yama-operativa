@@ -20,4 +20,6 @@ void global_set_process(process_t process);
 
 process_t global_get_process();
 
+ssize_t global_readfile(const char *path, char *buffer);
+
 #endif /* global_h */
