@@ -33,6 +33,21 @@ socket_t conectar_con_yama(yamamaster_t *config) {
 	return sock;
 }
 
+socket_t conectar_con_worker(char *ip, char *puerto) {
+	socket_t sock;
+	if((sock = socket_connect(ip, puerto)) == -1) {
+		exit(EXIT_FAILURE);
+	}
+
+	if(!protocol_handshake_send(sock)) {
+		exit(EXIT_FAILURE);
+	}
+	header_t header;
+	if(!protocol_handshake_receive(sock, &header)) {
+		exit(EXIT_FAILURE);
+	}
+	return sock;
+}
 
 int main(int argc, char **argv) {
 	global_set_process(MASTER);
@@ -43,6 +58,8 @@ int main(int argc, char **argv) {
 	sockYAMA = conectar_con_yama(config);
 
 	ejecutar_transformacion(sockYAMA, p_transformador, p_origen);
+
+	ejecutar_reduccion(sockYAMA, p_reductor, p_origen);
 
 	return EXIT_SUCCESS;
 }

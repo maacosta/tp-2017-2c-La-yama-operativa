@@ -4,22 +4,6 @@ static socket_t sock;
 static char *nombre_arch_transformador;
 static char *nombre_arch_origen;
 
-socket_t conectar_con_worker(char *ip, char *puerto) {
-	socket_t sock;
-	if((sock = socket_connect(ip, puerto)) == -1) {
-		exit(EXIT_FAILURE);
-	}
-
-	if(!protocol_handshake_send(sock)) {
-		exit(EXIT_FAILURE);
-	}
-	header_t header;
-	if(!protocol_handshake_receive(sock, &header)) {
-		exit(EXIT_FAILURE);
-	}
-	return sock;
-}
-
 void atender_transformacion(unsigned char* payload) {
     char nombre_nodo[NOMBRE_NODO_SIZE];
     char ip[IP_SIZE];
