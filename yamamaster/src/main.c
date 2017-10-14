@@ -99,5 +99,9 @@ int main(int argc, char **argv) {
 	if(verificar_etapa(2) != 1)
 		exit(EXIT_FAILURE);
 
+	ejecutar_reduccion_global(sockYAMA, p_reductor, p_origen);
+	if(verificar_etapa(3) != 1)
+		exit(EXIT_FAILURE);
+
 	return EXIT_SUCCESS;
 }
