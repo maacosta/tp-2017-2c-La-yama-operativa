@@ -30,7 +30,7 @@ void atender_reduccion(unsigned char* payload) {
 	free(arc_reduc);
 
 	//enviar Iniciar Reduccion
-	char buffer[NOMBRE_ARCHIVO_TMP*10 + NOMBRE_ARCHIVO_TMP + 1];
+	char buffer[NOMBRE_ARCHIVO_TMP + NOMBRE_ARCHIVO_TMP*10 + 1];
 	size = serial_string_pack(&buffer, "s s", &nombre_archivos_tmp, &nombre_archivo_reduccion_local);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Reduccion, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
@@ -41,14 +41,14 @@ void atender_reduccion(unsigned char* payload) {
 	paquete = protocol_packet_receive(sockWorker);
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
-	char respuesta[RESPUESTA_SIZE];
-	serial_string_unpack(paquete.payload, "s", &respuesta);
+	int respuesta;
+	serial_string_unpack(paquete.payload, "h", &respuesta);
 	protocol_packet_free(&paquete);
 
 	//enviar Estado Transformacion
-	char buffer2[RESPUESTA_SIZE + NOMBRE_NODO_SIZE + 1];
-	size = serial_string_pack(buffer2, "s s", nombre_nodo, respuesta);
-	cabecera = protocol_get_header(OP_YAM_Estado_Reduccion, size);
+	char buffer2[NOMBRE_NODO_SIZE + RESPUESTA_SIZE + 1];
+	size = serial_string_pack(buffer2, "s h", nombre_nodo, respuesta);
+	cabecera = protocol_get_header(OP_YAM_Enviar_Estado_Reduccion, size);
 	paquete = protocol_get_packet(cabecera, &buffer2);
 	if(!protocol_packet_send(sock, &paquete))
 		exit(EXIT_FAILURE);

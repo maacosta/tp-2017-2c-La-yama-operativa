@@ -7,7 +7,7 @@
 #include "serial_string.h"
 #include "socket.h"
 
-#define RESPUESTA_SIZE 6
+#define RESPUESTA_SIZE 2
 #define NOMBRE_NODO_SIZE 20
 #define IP_SIZE 16
 #define PUERTO_SIZE 7
@@ -25,14 +25,15 @@ typedef enum {
 	OP_ERROR = 0,		//Se utiliza para responder cualquier error, el detalle queda en el emisor
 	OP_HANDSHAKE,
 
+	OP_YAM_Verificar_Estado,
 	OP_YAM_Solicitar_Transformacion,
-	OP_YAM_Estado_Transformacion,
+	OP_YAM_Enviar_Estado_Transformacion,
 	OP_YAM_Solicitar_Reduccion,
-	OP_YAM_Estado_Reduccion,
+	OP_YAM_Enviar_Estado_Reduccion,
 	OP_YAM_Solicitar_Reduccion_Global,
-	OP_YAM_Estado_Reduccion_Global,
+	OP_YAM_Enviar_Estado_Reduccion_Global,
 	OP_YAM_Solicitar_Almacenamiento_Final,
-	OP_YAM_Estado_Almacenamiento_Final,
+	OP_YAM_Enviar_Estado_Almacenamiento_Final,
 
 	OP_WRK_Iniciar_Transformacion,
 	OP_WRK_Iniciar_Reduccion,

@@ -39,19 +39,19 @@ static bool procesar_operaciones(socket_t cliente) {
 		case OP_YAM_Solicitar_Transformacion:
 			operation_solicitar_transformacion(&packet, estados_master, cliente);
 			break;
-		case OP_YAM_Estado_Transformacion:
+		case OP_YAM_Enviar_Estado_Transformacion:
 			break;
 		case OP_YAM_Solicitar_Reduccion:
 			break;
-		case OP_YAM_Estado_Reduccion:
+		case OP_YAM_Enviar_Estado_Reduccion:
 			break;
 		case OP_YAM_Solicitar_Reduccion_Global:
 			break;
-		case OP_YAM_Estado_Reduccion_Global:
+		case OP_YAM_Enviar_Estado_Reduccion_Global:
 			break;
 		case OP_YAM_Solicitar_Almacenamiento_Final:
 			break;
-		case OP_YAM_Estado_Almacenamiento_Final:
+		case OP_YAM_Enviar_Estado_Almacenamiento_Final:
 			break;
 		default:
 			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);

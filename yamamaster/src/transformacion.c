@@ -31,7 +31,7 @@ void atender_transformacion(unsigned char* payload) {
 	free(arc_trans);
 
 	//enviar Iniciar Transformacion
-	char buffer[NOMBRE_ARCHIVO_TMP + BYTES_OCUPADOS_SIZE_E + BLOQUE_SIZE_E + 2];
+	char buffer[BLOQUE_SIZE_E + BYTES_OCUPADOS_SIZE_E + NOMBRE_ARCHIVO_TMP + 2];
 	size = serial_string_pack(&buffer, "h h s", bloque, bytes_ocupados, &nombre_archivo_tmp);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
@@ -42,19 +42,17 @@ void atender_transformacion(unsigned char* payload) {
 	paquete = protocol_packet_receive(sockWorker);
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
-	char respuesta[RESPUESTA_SIZE];
-	serial_string_unpack(paquete.payload, "s", &respuesta);
+	int respuesta;
+	serial_string_unpack(paquete.payload, "h", &respuesta);
 	protocol_packet_free(&paquete);
 
 	//enviar Estado Transformacion
-	char buffer2[RESPUESTA_SIZE + BLOQUE_SIZE_E + NOMBRE_NODO_SIZE + 2];
-	size = serial_string_pack(buffer2, "s h s", nombre_nodo, bloque, respuesta);
-	cabecera = protocol_get_header(OP_YAM_Estado_Transformacion, size);
+	char buffer2[NOMBRE_NODO_SIZE + BLOQUE_SIZE_E + RESPUESTA_SIZE + 2];
+	size = serial_string_pack(buffer2, "s h h", nombre_nodo, bloque, respuesta);
+	cabecera = protocol_get_header(OP_YAM_Enviar_Estado_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, &buffer2);
 	if(!protocol_packet_send(sock, &paquete))
 		exit(EXIT_FAILURE);
-
-	//TODO: falta considerar el pedido de replanificacion en caso de error
 }
 
 void ejecutar_transformacion(socket_t sockYama, char *archivo_transformador, char *archivo_origen) {
