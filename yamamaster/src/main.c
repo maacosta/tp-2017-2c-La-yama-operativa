@@ -103,5 +103,9 @@ int main(int argc, char **argv) {
 	if(verificar_etapa(3) != 1)
 		exit(EXIT_FAILURE);
 
+	ejecutar_almacenamiento(sockYAMA, p_destino, p_origen);
+	if(verificar_etapa(4) != 1)
+		exit(EXIT_FAILURE);
+
 	return EXIT_SUCCESS;
 }

@@ -48,7 +48,7 @@ void atender_transformacion(unsigned char* payload) {
 
 	//enviar Estado Transformacion
 	char buffer2[NOMBRE_NODO_SIZE + BLOQUE_SIZE_E + RESPUESTA_SIZE + 2];
-	size = serial_string_pack(buffer2, "s h h", nombre_nodo, bloque, respuesta);
+	size = serial_string_pack(buffer2, "s h h", &nombre_nodo, bloque, respuesta);
 	cabecera = protocol_get_header(OP_YAM_Enviar_Estado_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, &buffer2);
 	if(!protocol_packet_send(sock, &paquete))

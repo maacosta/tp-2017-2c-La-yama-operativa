@@ -47,7 +47,7 @@ void atender_reduccion(unsigned char* payload) {
 
 	//enviar Estado Transformacion
 	char buffer2[NOMBRE_NODO_SIZE + RESPUESTA_SIZE + 1];
-	size = serial_string_pack(buffer2, "s h", nombre_nodo, respuesta);
+	size = serial_string_pack(buffer2, "s h", &nombre_nodo, respuesta);
 	cabecera = protocol_get_header(OP_YAM_Enviar_Estado_Reduccion, size);
 	paquete = protocol_get_packet(cabecera, &buffer2);
 	if(!protocol_packet_send(sock, &paquete))
