@@ -42,7 +42,13 @@ typedef struct {
 	estado_master_t *estado_master;
 } detalle_archivo_t;
 
-void server_crear(yama_t *config, socket_t sockfs);
+typedef struct {
+	char nodo[NOMBRE_NODO_SIZE];
+	char ip[IP_SIZE];
+	char puerto[PUERTO_SIZE];
+} detalle_nodo_t;
+
+void server_crear(yama_t *config, socket_t sockfs, t_list *nodos);
 
 void server_liberar();
 

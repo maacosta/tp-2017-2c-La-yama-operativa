@@ -42,6 +42,7 @@ typedef enum {
 
 	OP_FSY_Informacion_Archivo,
 	OP_FSY_Almacenar_Archivo,
+	OP_FSY_Obtener_Nodos
 } operation_t;
 
 typedef struct {

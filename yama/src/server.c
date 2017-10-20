@@ -62,7 +62,7 @@ static bool procesar_operaciones(socket_t cliente) {
 	return true;
 }
 
-void server_crear(yama_t* config, socket_t sockfs) {
+void server_crear(yama_t* config, socket_t sockfs, t_list *nodos) {
 	sockFS = sockfs;
 	socket_t cli_i;
 	fd_set read_fdset;
