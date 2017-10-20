@@ -9,15 +9,38 @@
 #include "configuration.h"
 #include "operation.h"
 
-typedef struct{
+typedef enum {
+	ETAPA_Transformacion,
+	ETAPA_Reduccion_Local,
+	ETAPA_Reduccion_Global,
+	ETAPA_Almacenamiento_Final
+} etapa_t;
+
+typedef enum {
+	ESTADO_En_Proceso,
+	ESTADO_Finalizado_OK,
+	ESTADO_Error
+} estado_t;
+
+typedef struct {
 	int job;
-	int master;
-	char nodo[50];
+	socket_t master;
+	char nodo[NOMBRE_NODO_SIZE];
 	int bloque;
-	char etapa;					//transformacion, reduccion local, reduccion global, almacenamiento final
-	char archivo_temporal[50];	//el path es temp/nombre_aleatorio hasta 255
-	char estado;				//en proceso, finalizado ok, error
+	etapa_t etapa;
+	char archivo_temporal[NOMBRE_ARCHIVO_TMP];
+	estado_t estado;
 } estado_master_t;
+
+typedef struct {
+	int num_bloque;
+	char nombre_nodo_1[NOMBRE_NODO_SIZE];
+	int num_bloque_1;
+	char nombre_nodo_2[NOMBRE_NODO_SIZE];
+	int num_bloque_2;
+	int tamanio;
+	estado_master_t *estado_master;
+} detalle_archivo_t;
 
 void server_crear(yama_t *config, socket_t sockfs);
 
