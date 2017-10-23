@@ -110,7 +110,7 @@ void server_crear_nombre_archivo_temporal(char *dest) {
 	char nom[NOMBRE_ARCHIVO_TMP];
 	generar_nombre_aleatorio(&nom, 6);
 	char *tmp = string_new();
-	string_append(tmp, "/tmp/");
+	string_append(&tmp, "/tmp/");
 	string_append(&tmp, &nom);
 	strcpy(dest, tmp);
 	free(tmp);
