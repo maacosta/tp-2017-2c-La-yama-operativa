@@ -3,6 +3,7 @@
 static socket_t sockSRV;
 static socket_t sockFS;
 t_list *estados_master;
+t_list *nodos;
 
 static void liberar_estado_master(estado_master_t *estadoMaster) {
 	free(estadoMaster);
@@ -28,7 +29,7 @@ static socket_t aceptar_cliente(socket_t server) {
 	return cliente;
 }
 
-static bool procesar_operaciones(socket_t cliente) {
+static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos) {
 	packet_t packet = protocol_packet_receive(cliente);
 	if(packet.header.operation == OP_ERROR) {
 		socket_close(cliente);
@@ -37,7 +38,7 @@ static bool procesar_operaciones(socket_t cliente) {
 
 	switch(packet.header.operation) {
 		case OP_YAM_Solicitar_Transformacion:
-			operation_solicitar_transformacion(&packet, estados_master, cliente);
+			transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
 			break;
 		case OP_YAM_Enviar_Estado_Transformacion:
 			break;
@@ -69,8 +70,6 @@ void server_crear(yama_t* config, socket_t sockfs, t_list *nodos) {
 
 	sockSRV = socket_listen(config->puerto);
 
-	operation_init(config, sockSRV, sockFS);
-
 	estados_master = list_create();
 	while(true) {
 		if(!socket_select(&read_fdset)) break;
@@ -84,7 +83,7 @@ void server_crear(yama_t* config, socket_t sockfs, t_list *nodos) {
 				socket_fdset(cli_sock);
 			}
 			else {
-				if(!procesar_operaciones(cli_i)) {
+				if(!procesar_operaciones(cli_i, config, nodos)) {
 					socket_fdclear(cli_i);
 					continue;
 				}
