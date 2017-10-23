@@ -29,6 +29,8 @@ t_list *filesystem_obtener_nodos(socket_t sock) {
 		detalle_nodo_t *det = malloc(sizeof(detalle_nodo_t));
 		serial_unpack(paquete.payload, "s s s", det->nodo, det->ip, det->puerto);
 		protocol_packet_free(&paquete);
+		det->wl = 0;
+		det->executed_jobs = 0;
 		list_add(nodos, det);
 	}
 	return nodos;

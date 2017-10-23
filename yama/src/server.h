@@ -34,6 +34,8 @@ typedef struct {
 
 void server_crear(yama_t *config, socket_t sockfs, t_list *nodos);
 
+void server_crear_nombre_archivo_temporal(char *nombre);
+
 void server_liberar();
 
 #endif /* SRC_SERVER_H_ */

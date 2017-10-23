@@ -170,6 +170,29 @@ t_list *aplicar_planificacion_de_distribucion(yama_t* config, t_list *estados_ma
 	return bloques_nodo;
 }
 
+void actualizar_lista_nodos(detalle_archivo_seleccionado_t *det_sel, detalle_nodo_t *nodo) {
+	log_msg_info("Etapa Transformacion: Actualizar datos de nodo [ %s ]", det_sel->nombre_nodo);
+	//actualizar nodo
+	nodo->wl += 1;
+	nodo->executed_jobs += 1;
+}
+
+void actualizar_lista_estados_master(detalle_archivo_seleccionado_t *det_sel, t_list *estados_master, socket_t sockMaster, char *nombre_arc_tmp) {
+	log_msg_info("Etapa Transformacion: Agregar bloque estado master [ %d ]", det_sel->num_bloque);
+	//agregar bloque estado master
+	estado_master_t *estado_master = malloc(sizeof(estado_master_t));
+	//como de la lista no se eliminan nodos se puede considerar la cantidad de elementos como numerador de jobs
+	int num_job = list_size(estados_master);
+	estado_master->job = num_job + 1;
+	estado_master->master = sockMaster;
+	strcpy(estado_master->nodo, det_sel->nombre_nodo);
+	estado_master->bloque = det_sel->num_bloque;
+	estado_master->etapa = ETAPA_Transformacion;
+	strcpy(estado_master->archivo_temporal, nombre_arc_tmp);
+	estado_master->estado = ESTADO_En_Proceso;
+	list_add(estados_master, estado_master);
+}
+
 bool transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sockFS, yama_t* config, t_list *estados_master, t_list *nodos) {
 	char archivo_a_procesar[NOMBRE_ARCHIVO];
 	serial_string_unpack(packet->payload, "s", &archivo_a_procesar);
@@ -219,17 +242,22 @@ bool transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sock
 	//enviar detalle
 	detalle_archivo_seleccionado_t *det_sel;
 	detalle_nodo_t *nodo;
+	char nombre_arc_tmp[NOMBRE_ARCHIVO_TMP];
 	for(i = 0; i < cant_bloques; i++) {
 		det_sel = list_get(bloques_nodo, i);
 		int buscar_por_nodo(detalle_nodo_t *n) {
 			return string_equals_ignore_case(n->nodo, det_sel->nombre_nodo);
 		}
 		nodo = list_find(nodos, (void *)buscar_por_nodo);
-		size = serial_string_pack(buffer, "s s s h h s", det_sel->nombre_nodo, nodo->ip, nodo->puerto, det_sel->num_bloque, det_sel->tamanio, "nombre archivo temporal");
+		server_crear_nombre_archivo_temporal(&nombre_arc_tmp);
+		size = serial_string_pack(buffer, "s s s h h s", det_sel->nombre_nodo, nodo->ip, nodo->puerto, det_sel->num_bloque, det_sel->tamanio, &nombre_arc_tmp);
 		cabecera = protocol_get_header(OP_YAM_Solicitar_Transformacion, size);
 		paquete = protocol_get_packet(cabecera, &buffer);
 		if(!protocol_packet_send(sockMaster, &paquete))
 			return false;
+		//actualizar lista nodos y estados_master
+		actualizar_lista_nodos(det_sel, nodo);
+		actualizar_lista_estados_master(det_sel, estados_master, sockMaster, &nombre_arc_tmp);
 	}
 	list_destroy_and_destroy_elements(bloques_nodo, free);
 	return true;

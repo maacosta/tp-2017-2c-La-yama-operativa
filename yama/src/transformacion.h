@@ -8,6 +8,7 @@
 #include "../../common/protocol.h"
 #include "configuration.h"
 #include "filesystem.h"
+#include "server.h"
 
 typedef struct {
 	char nodo[NOMBRE_NODO_SIZE];
