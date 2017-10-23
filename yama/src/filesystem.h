@@ -8,7 +8,14 @@
 #include "../../common/socket.h"
 #include "../../common/protocol.h"
 #include "configuration.h"
-#include "operation.h"
+
+typedef struct {
+	char nodo[NOMBRE_NODO_SIZE];
+	char ip[IP_SIZE];
+	char puerto[PUERTO_SIZE];
+	unsigned int wl;
+	unsigned int executed_jobs;
+} detalle_nodo_t;
 
 t_list *filesystem_obtener_nodos(socket_t sock);
 

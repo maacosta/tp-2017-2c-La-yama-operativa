@@ -3,7 +3,6 @@
 static socket_t sockSRV;
 static socket_t sockFS;
 t_list *estados_master;
-t_list *nodos;
 
 static void liberar_estado_master(estado_master_t *estadoMaster) {
 	free(estadoMaster);

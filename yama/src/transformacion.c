@@ -139,7 +139,6 @@ t_list *aplicar_planificacion_de_distribucion(yama_t* config, t_list *estados_ma
 	//aplicar balanceo de carga
 	t_list *bloques_nodo = list_create();
 	detalle_archivo_seleccionado_t *det_sel;
-	int j;
 	for(i = 0; i < list_size(bloques); i++) {
 		det = list_get(bloques, i);
 		det_sel = malloc(sizeof(detalle_archivo_seleccionado_t));
@@ -212,7 +211,7 @@ void transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sock
 
 	//enviar Solicitar Transformacion
 	size = serial_string_pack(&buffer, "h", cant_bloques);
-	cabecera = protocol_get_header(OP_YAM_Solicitar_Transformacion, size);
+	cabecera = protocol_get_header(OP_YAM_Solicitar_Transformacion, (unsigned long)size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockMaster, &paquete))
 		exit(EXIT_FAILURE);
