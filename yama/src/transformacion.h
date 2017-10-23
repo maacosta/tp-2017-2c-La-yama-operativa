@@ -29,6 +29,6 @@ typedef struct {
 	int tamanio;
 } detalle_archivo_seleccionado_t;
 
-void transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sockFS, yama_t* config, t_list *estados_master, t_list *nodos);
+bool transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sockFS, yama_t* config, t_list *estados_master, t_list *nodos);
 
 #endif /* YAMA_SRC_TRANSFORMACION_H_ */

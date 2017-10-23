@@ -60,6 +60,8 @@ void iterar_planificacion(detalle_archivo_seleccionado_t *det_sel, int pci, int 
 }
 
 t_list *aplicar_planificacion_de_distribucion(yama_t* config, t_list *estados_master, t_list *bloques, t_list *nodos) {
+	log_msg_info("Etapa Transformacion: Planificacion: Balanceo [ %s ]", config->algoritmo_balanceo);
+
 	//obtener nodos de los bloques de datos
 	planificacion_t *pln;
 	detalle_archivo_t *det;
@@ -88,10 +90,10 @@ t_list *aplicar_planificacion_de_distribucion(yama_t* config, t_list *estados_ma
 			list_add(planificador, pln);
 		}
 	}
-
 	//agregar carga a disponibilidad si balanceo es W-CLOCK
 	detalle_nodo_t *ndo;
 	if(string_equals_ignore_case(config->algoritmo_balanceo, "W-CLOCK")) {
+		log_msg_info("Etapa Transformacion: Planificacion: Calculo de carga segun balanceo [ %s ]", config->algoritmo_balanceo);
 		unsigned int wlmax = 0;
 		for(i = 0; i < list_size(nodos); i++) {
 			ndo = list_get(nodos, i);
@@ -106,7 +108,7 @@ t_list *aplicar_planificacion_de_distribucion(yama_t* config, t_list *estados_ma
 			pln->availability += wlmax - ndo->wl;
 		}
 	}
-
+	log_msg_info("Etapa Transformacion: Planificacion: Definir Clock");
 	//definir clock
 	planificacion_t *pln_clock;
 	int pln_size = list_size(planificador);
@@ -135,7 +137,7 @@ t_list *aplicar_planificacion_de_distribucion(yama_t* config, t_list *estados_ma
 			}
 		}
 	}
-
+	log_msg_info("Etapa Transformacion: Planificacion: Aplicar balanceo");
 	//aplicar balanceo de carga
 	t_list *bloques_nodo = list_create();
 	detalle_archivo_seleccionado_t *det_sel;
@@ -168,7 +170,7 @@ t_list *aplicar_planificacion_de_distribucion(yama_t* config, t_list *estados_ma
 	return bloques_nodo;
 }
 
-void transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sockFS, yama_t* config, t_list *estados_master, t_list *nodos) {
+bool transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sockFS, yama_t* config, t_list *estados_master, t_list *nodos) {
 	char archivo_a_procesar[NOMBRE_ARCHIVO];
 	serial_string_unpack(packet->payload, "s", &archivo_a_procesar);
 
@@ -182,23 +184,21 @@ void transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sock
 	cabecera = protocol_get_header(OP_FSY_Informacion_Archivo, packet->header.size);
 	paquete = protocol_get_packet(cabecera, &archivo_a_procesar);
 	if(!protocol_packet_send(sockFS, &paquete))
-		exit(EXIT_FAILURE);
-
+		return false;
 	//recibir Informacion Archivo
 	paquete = protocol_packet_receive(sockFS);
 	if(paquete.header.operation == OP_ERROR)
-		exit(EXIT_FAILURE);
+		return false;
 	int cant_bloques;
 	serial_unpack(paquete.payload, "h", &cant_bloques);
 	protocol_packet_free(&paquete);
-
 	//obtener detalle de cada bloque
 	t_list *bloques = list_create();
 	int i;
 	for(i = 0; i < cant_bloques; i++) {
 		paquete = protocol_packet_receive(sockFS);
 		if(paquete.header.operation == OP_ERROR)
-			exit(EXIT_FAILURE);
+			return false;
 		detalle_archivo_t *det = malloc(sizeof(detalle_archivo_t));
 		serial_unpack(paquete.payload, "h s h s h h", det->num_bloque, det->nombre_nodo_1, det->num_bloque_1, det->nombre_nodo_2, det->num_bloque_2, det->tamanio);
 		protocol_packet_free(&paquete);
@@ -214,7 +214,7 @@ void transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sock
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Transformacion, (unsigned long)size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockMaster, &paquete))
-		exit(EXIT_FAILURE);
+		return false;
 
 	//enviar detalle
 	detalle_archivo_seleccionado_t *det_sel;
@@ -229,7 +229,8 @@ void transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sock
 		cabecera = protocol_get_header(OP_YAM_Solicitar_Transformacion, size);
 		paquete = protocol_get_packet(cabecera, &buffer);
 		if(!protocol_packet_send(sockMaster, &paquete))
-			exit(EXIT_FAILURE);
+			return false;
 	}
 	list_destroy_and_destroy_elements(bloques_nodo, free);
+	return true;
 }

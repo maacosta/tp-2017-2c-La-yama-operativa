@@ -34,10 +34,10 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 		socket_close(cliente);
 		return false;
 	}
-
+	bool resultado;
 	switch(packet.header.operation) {
 		case OP_YAM_Solicitar_Transformacion:
-			transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
+			resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
 			break;
 		case OP_YAM_Enviar_Estado_Transformacion:
 			break;
@@ -59,7 +59,9 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 			return false;
 	}
 	protocol_packet_free(&packet);
-	return true;
+	if(!resultado)
+		socket_close(cliente);
+	return resultado;
 }
 
 void server_crear(yama_t* config, socket_t sockfs, t_list *nodos) {
