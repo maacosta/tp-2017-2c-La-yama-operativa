@@ -2,12 +2,12 @@
 
 char buffer[4096];
 
-int avanzar_clock(yama_t* config, t_list *planificador, planificacion_t *pln_clock, int pln_clock_index, int pln_size) {
+planificacion_t *avanzar_clock(yama_t* config, t_list *planificador, planificacion_t *pln_clock, int *pln_clock_index, int pln_size) {
 	pln_clock->availability = pln_clock->availability - 1;
-	if(pln_clock_index + 1 == pln_size) pln_clock_index = 0;
-	pln_clock = list_get(planificador, pln_clock_index);
+	if(++(*pln_clock_index) == pln_size) *pln_clock_index = 0;
+	pln_clock = list_get(planificador, *pln_clock_index);
 	if(pln_clock->availability == 0) pln_clock->availability = config->disponibilidad_base;
-	return pln_clock_index;
+	return pln_clock;
 }
 
 void iterar_planificacion(detalle_archivo_seleccionado_t *det_sel, int pci, int pln_size, t_list *planificador, detalle_archivo_t *det, yama_t *config) {
@@ -149,14 +149,16 @@ t_list *aplicar_planificacion_de_distribucion(yama_t* config, t_list *estados_ma
 			strcpy(det_sel->nombre_nodo, det->nombre_nodo_1);
 			det_sel->num_bloque = det->num_bloque_1;
 			det_sel->tamanio = det->tamanio;
-			pln_clock_index = avanzar_clock(config, planificador, &pln_clock, pln_clock_index, pln_size);
+			list_add(bloques_nodo, det_sel);
+			pln_clock = avanzar_clock(config, planificador, pln_clock, &pln_clock_index, pln_size);
 			continue;
 		}
 		if(string_equals_ignore_case(pln_clock->nodo, det->nombre_nodo_2)) {
 			strcpy(det_sel->nombre_nodo, det->nombre_nodo_2);
 			det_sel->num_bloque = det->num_bloque_2;
 			det_sel->tamanio = det->tamanio;
-			pln_clock_index = avanzar_clock(config, planificador, &pln_clock, pln_clock_index, pln_size);
+			list_add(bloques_nodo, det_sel);
+			pln_clock = avanzar_clock(config, planificador, pln_clock, &pln_clock_index, pln_size);
 			continue;
 		}
 		//si nodo del bloque no coincide con clock, iterar
