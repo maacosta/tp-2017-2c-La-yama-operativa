@@ -2,18 +2,20 @@
 
 static socket_t sock;
 static char *nombre_arch_transformador;
-static char *nombre_arch_origen;
 
-void atender_transformacion(unsigned char* payload) {
-    char nombre_nodo[NOMBRE_NODO_SIZE];
+bool procesar_transformacion(unsigned char* payload, int *numero_job, resultado_t *resultado_estado) {
+    int num_job;
+	char nombre_nodo[NOMBRE_NODO_SIZE];
     char ip[IP_SIZE];
     char puerto[PUERTO_SIZE];
     int bloque;
     int bytes_ocupados;
     char nombre_archivo_tmp[NOMBRE_ARCHIVO_TMP];
 
-	serial_string_unpack(payload, "s s s h h s", &nombre_nodo, &ip, &puerto, &bloque, &bytes_ocupados, &nombre_archivo_tmp);
+	serial_string_unpack(payload, "h s s s h h s", &num_job, &nombre_nodo, &ip, &puerto, &bloque, &bytes_ocupados, &nombre_archivo_tmp);
 	free(payload);
+
+	*numero_job = num_job;
 
 	socket_t sockWorker = conectar_con_worker(ip, puerto);
 
@@ -27,7 +29,7 @@ void atender_transformacion(unsigned char* payload) {
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, arc_trans);
 	if(!protocol_packet_send(sockWorker, &paquete))
-		exit(EXIT_FAILURE);
+		return false;
 	free(arc_trans);
 
 	//enviar Iniciar Transformacion
@@ -36,30 +38,71 @@ void atender_transformacion(unsigned char* payload) {
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockWorker, &paquete))
-		exit(EXIT_FAILURE);
+		return false;
 
 	//recibir Iniciar Transformacion
 	paquete = protocol_packet_receive(sockWorker);
 	if(paquete.header.operation == OP_ERROR)
-		exit(EXIT_FAILURE);
-	int respuesta;
-	serial_string_unpack(paquete.payload, "h", &respuesta);
+		return false;
+	resultado_t resultado;
+	serial_string_unpack(paquete.payload, "h", &resultado);
 	protocol_packet_free(&paquete);
 
 	//enviar Estado Transformacion
-	char buffer2[NOMBRE_NODO_SIZE + BLOQUE_SIZE_E + RESPUESTA_SIZE + 2];
-	size = serial_string_pack(buffer2, "s h h", &nombre_nodo, bloque, respuesta);
-	cabecera = protocol_get_header(OP_YAM_Enviar_Estado_Transformacion, size);
+	char buffer2[NUMERO_JOB_SIZE + RESPUESTA_SIZE + 1];
+	size = serial_string_pack(buffer2, "h h", num_job, resultado);
+	cabecera = protocol_get_header(OP_YAM_Enviar_Estado, size);
 	paquete = protocol_get_packet(cabecera, &buffer2);
 	if(!protocol_packet_send(sock, &paquete))
-		exit(EXIT_FAILURE);
+		return false;
+
+	//recibir Estado Transformacion
+	paquete = protocol_packet_receive(sock);
+	if(paquete.header.operation == OP_ERROR)
+		return false;
+	estado_t estado;
+	serial_string_unpack(paquete.payload, "h", &estado);
+	protocol_packet_free(&paquete);
+
+	*resultado_estado = estado;
+
+	return true;
+}
+
+void atender_transformacion(unsigned char* payload) {
+	estado_t estado;
+	int numero_job;
+	if(!procesar_transformacion(payload, &numero_job, &estado))
+		pthread_exit(EXIT_FAILURE);
+
+	if(estado == ESTADO_Error_Replanifica) {
+		header_t cabecera;
+		packet_t paquete;
+		size_t size;
+
+		//enviar Solicitar Transformacion
+		char buffer[NUMERO_JOB_SIZE];
+		size = serial_string_pack(buffer, "h", numero_job);
+		cabecera = protocol_get_header(OP_YAM_Replanificar_Transformacion, size);
+		paquete = protocol_get_packet(cabecera, &buffer);
+		if(!protocol_packet_send(sock, &paquete))
+			pthread_exit(EXIT_FAILURE);
+
+		paquete = protocol_packet_receive(sock);
+		if(paquete.header.operation == OP_ERROR)
+			pthread_exit(EXIT_FAILURE);
+		if(!procesar_transformacion(paquete.payload, &numero_job, &estado))
+			pthread_exit(EXIT_FAILURE);
+	}
+
+	int r = estado == ESTADO_Finalizado_OK ? EXIT_SUCCESS : EXIT_FAILURE;
+	pthread_exit(r);
 }
 
 void ejecutar_transformacion(socket_t sockYama, char *archivo_transformador, char *archivo_origen) {
 	sock = sockYama;
 	nombre_arch_transformador = archivo_transformador;
 	char nombre_archivo[NOMBRE_ARCHIVO];
-	nombre_arch_origen = archivo_origen;
 
 	header_t cabecera;
 	packet_t paquete;
@@ -87,7 +130,11 @@ void ejecutar_transformacion(socket_t sockYama, char *archivo_transformador, cha
 			exit(EXIT_FAILURE);
 		threads[i] = thread_create(atender_transformacion, paquete.payload);
 	}
-	for(i = 0; i < cant_bloques; i++)
-		thread_join(threads[i]);
+	int r;
+	for(i = 0; i < cant_bloques; i++) {
+		r = thread_join(threads[i]);
+		if(r == EXIT_FAILURE)
+			exit(EXIT_FAILURE);
+	}
 }
 

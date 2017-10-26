@@ -37,7 +37,7 @@ void thread_kill(thread_t thread);
 /**
  * Espera a que el hilo termine
  */
-void thread_join(thread_t thread);
+int thread_join(thread_t thread);
 
 /**
  * Crea un semáforo de exclusión mutua (mutex).

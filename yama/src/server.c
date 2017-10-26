@@ -36,29 +36,23 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 	}
 	bool resultado;
 	switch(packet.header.operation) {
-		case OP_YAM_Solicitar_Transformacion:
-			resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
-			break;
-		case OP_YAM_Enviar_Estado_Transformacion:
-			break;
-		case OP_YAM_Solicitar_Reduccion:
-			break;
-		case OP_YAM_Enviar_Estado_Reduccion:
-			break;
-		case OP_YAM_Solicitar_Reduccion_Global:
-			break;
-		case OP_YAM_Enviar_Estado_Reduccion_Global:
-			break;
-		case OP_YAM_Solicitar_Almacenamiento_Final:
-			break;
-		case OP_YAM_Enviar_Estado_Almacenamiento_Final:
-			break;
-		default:
-			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
-			protocol_packet_free(&packet);
-			return false;
+	case OP_YAM_Enviar_Estado:
+		resultado = jem_consultar(&packet, cliente, estados_master);
+		break;
+	case OP_YAM_Solicitar_Transformacion:
+		resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
+		break;
+	case OP_YAM_Solicitar_Reduccion:
+		break;
+	case OP_YAM_Solicitar_Reduccion_Global:
+		break;
+	case OP_YAM_Solicitar_Almacenamiento_Final:
+		break;
+	default:
+		log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
+		protocol_packet_free(&packet);
+		return false;
 	}
-	protocol_packet_free(&packet);
 	if(!resultado)
 		socket_close(cliente);
 	return resultado;
