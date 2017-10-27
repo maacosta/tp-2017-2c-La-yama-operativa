@@ -41,7 +41,7 @@ void atender_reduccion(unsigned char* payload) {
 	paquete = protocol_packet_receive(sockWorker);
 	if(paquete.header.operation == OP_ERROR)
 		pthread_exit(EXIT_FAILURE);
-	int respuesta;
+	resultado_t respuesta;
 	serial_string_unpack(paquete.payload, "h", &respuesta);
 	protocol_packet_free(&paquete);
 
@@ -57,10 +57,11 @@ void atender_reduccion(unsigned char* payload) {
 	paquete = protocol_packet_receive(sock);
 	if(paquete.header.operation == OP_ERROR)
 		pthread_exit(EXIT_FAILURE);
-	serial_string_unpack(paquete.payload, "h", &respuesta);
+	estado_t estado;
+	serial_string_unpack(paquete.payload, "h", &estado);
 	protocol_packet_free(&paquete);
 
-	int r = respuesta == ESTADO_Finalizado_OK ? EXIT_SUCCESS : EXIT_FAILURE;
+	int r = estado == ESTADO_Finalizado_OK ? EXIT_SUCCESS : EXIT_FAILURE;
 	pthread_exit(r);
 }
 
@@ -163,7 +164,7 @@ void ejecutar_reduccion_global(socket_t sockYama, char *archivo_reductor) {
 	paquete = protocol_packet_receive(sockWorker);
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
-	int respuesta;
+	resultado_t respuesta;
 	serial_string_unpack(paquete.payload, "h", &respuesta);
 	protocol_packet_free(&paquete);
 
@@ -179,9 +180,10 @@ void ejecutar_reduccion_global(socket_t sockYama, char *archivo_reductor) {
 	paquete = protocol_packet_receive(sock);
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
-	serial_string_unpack(paquete.payload, "h", &respuesta);
+	estado_t estado;
+	serial_string_unpack(paquete.payload, "h", &estado);
 	protocol_packet_free(&paquete);
 
-	if(respuesta != ESTADO_Finalizado_OK)
+	if(estado != ESTADO_Finalizado_OK)
 		exit(EXIT_FAILURE);
 }
