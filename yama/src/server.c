@@ -42,7 +42,11 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 	case OP_YAM_Solicitar_Transformacion:
 		resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
 		break;
+	case OP_YAM_Replanificar_Transformacion:
+		;
+		break;
 	case OP_YAM_Solicitar_Reduccion:
+		resultado = reduccion_iniciar(&packet, cliente, estados_master, nodos);
 		break;
 	case OP_YAM_Solicitar_Reduccion_Global:
 		break;
@@ -58,7 +62,7 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 	return resultado;
 }
 
-void server_crear(yama_t* config, socket_t sockfs, t_list *nodos) {
+void server_crear_yama(yama_t* config, socket_t sockfs, t_list *nodos) {
 	sockFS = sockfs;
 	socket_t cli_i;
 	fd_set read_fdset;

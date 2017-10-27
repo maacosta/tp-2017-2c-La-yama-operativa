@@ -74,12 +74,20 @@ typedef enum {
 } resultado_t;
 
 typedef struct {
+	char nodo[NOMBRE_NODO_SIZE];
+	char ip[IP_SIZE];
+	char puerto[PUERTO_SIZE];
+	unsigned int wl;
+	unsigned int executed_jobs;
+} detalle_nodo_t;
+
+typedef struct {
 	int job;
 	socket_t master;
 	char nodo[NOMBRE_NODO_SIZE];
 	int bloque;
 	etapa_t etapa;
-	char archivo_temporal[NOMBRE_ARCHIVO_TMP];
+	char archivo_temporal[NOMBRE_ARCHIVO_TMP*10];
 	estado_t estado;
 } estado_master_t;
 

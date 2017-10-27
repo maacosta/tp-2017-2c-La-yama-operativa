@@ -9,14 +9,6 @@
 #include "../../common/protocol.h"
 #include "configuration.h"
 
-typedef struct {
-	char nodo[NOMBRE_NODO_SIZE];
-	char ip[IP_SIZE];
-	char puerto[PUERTO_SIZE];
-	unsigned int wl;
-	unsigned int executed_jobs;
-} detalle_nodo_t;
-
 t_list *filesystem_obtener_nodos(socket_t sock);
 
 void filesystem_liberar_nodos(t_list *nodos);

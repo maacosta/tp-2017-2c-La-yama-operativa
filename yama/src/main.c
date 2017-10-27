@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 	socket_t sockFS = conectar_con_yamafs(config);
 	t_list *nodos = filesystem_obtener_nodos(sockFS);
 
-	server_crear(config, sockFS, nodos);
+	server_crear_yama(config, sockFS, nodos);
 
 	filesystem_liberar_nodos(nodos);
 	server_liberar();
