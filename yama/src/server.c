@@ -37,7 +37,7 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 	bool resultado;
 	switch(packet.header.operation) {
 	case OP_YAM_Enviar_Estado:
-		resultado = jem_consultar(&packet, cliente, estados_master);
+		resultado = jem_consultar(&packet, cliente, estados_master, nodos);
 		break;
 	case OP_YAM_Solicitar_Transformacion:
 		resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
@@ -49,6 +49,7 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 		resultado = reduccion_iniciar(&packet, cliente, estados_master, nodos);
 		break;
 	case OP_YAM_Solicitar_Reduccion_Global:
+		resultado = reduccion_global_iniciar(&packet, cliente, estados_master, nodos);
 		break;
 	case OP_YAM_Solicitar_Almacenamiento_Final:
 		break;

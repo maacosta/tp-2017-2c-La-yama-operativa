@@ -2,6 +2,7 @@
 #define SRC_SERVER_H_
 
 #include <stdbool.h>
+#include <limits.h>
 #include <commons/collections/list.h>
 #include "../../common/global.h"
 #include "../../common/socket.h"

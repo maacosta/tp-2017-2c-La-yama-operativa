@@ -1,6 +1,6 @@
 #include "jobs_estados_master.h"
 
-bool jem_consultar(packet_t *packet, socket_t sockMaster, t_list *estados_master) {
+bool jem_consultar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos) {
 	int num_job;
 	resultado_t resultado;
 	serial_string_unpack(packet->payload, "h h", &num_job, &resultado);
@@ -46,6 +46,14 @@ bool jem_consultar(packet_t *packet, socket_t sockMaster, t_list *estados_master
 			if(resultado == RESULTADO_Error) estado_master->estado = ESTADO_Error;
 		}
 	}
+
+	//descontar carga del nodo
+	detalle_nodo_t *nodo;
+	int buscar_por_nodo(detalle_nodo_t *n) {
+		return n->nodo == estado_master->nodo;
+	}
+	nodo = list_find(nodos, (void *)buscar_por_nodo);
+	nodo->wl -= 1;
 
 	//enviar Estado
 	char buffer[RESPUESTA_SIZE];

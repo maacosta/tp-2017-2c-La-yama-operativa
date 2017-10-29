@@ -87,7 +87,7 @@ typedef struct {
 	char nodo[NOMBRE_NODO_SIZE];
 	int bloque;
 	etapa_t etapa;
-	char archivo_temporal[NOMBRE_ARCHIVO_TMP*10];
+	char archivo_temporal[NOMBRE_ARCHIVO_TMP];
 	estado_t estado;
 } estado_master_t;
 

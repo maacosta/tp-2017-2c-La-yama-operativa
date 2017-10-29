@@ -12,6 +12,6 @@
 #include "server.h"
 */
 
-bool jem_consultar(packet_t *packet, socket_t sockMaster, t_list *estados_master);
+bool jem_consultar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos);
 
 #endif /* SRC_JOBS_ESTADOS_MASTER_H_ */
