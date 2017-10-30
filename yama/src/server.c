@@ -52,6 +52,7 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 		resultado = reduccion_global_iniciar(&packet, cliente, estados_master, nodos);
 		break;
 	case OP_YAM_Solicitar_Almacenamiento_Final:
+		resultado = almacenamiento_iniciar(&packet, cliente, estados_master, nodos);
 		break;
 	default:
 		log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);

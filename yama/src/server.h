@@ -11,6 +11,7 @@
 #include "jobs_estados_master.h"
 #include "transformacion.h"
 #include "reduccion.h"
+#include "almacenamiento.h"
 
 
 void server_crear_yama(yama_t *config, socket_t sockfs, t_list *nodos);
