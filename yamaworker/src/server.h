@@ -16,7 +16,7 @@
 #include "configuration.h"
 #include "operations.h"
 
-typedef struct{
+/*typedef struct{
 	int job;
 	int master;
 	char nodo[50];
@@ -24,9 +24,9 @@ typedef struct{
 	char etapa;					//transformacion, reduccion local, reduccion global, almacenamiento final
 	char archivo_temporal[50];	//el path es temp/nombre_aleatorio hasta 255
 	char estado;				//en proceso, finalizado ok, error
-} estado_master_t;
+} estado_master_t;*/
 
-socket_t escuchar_master();
+socket_t create_server();
 
 void server_liberar();
 
