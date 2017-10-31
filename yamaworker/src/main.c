@@ -1,5 +1,6 @@
 #include "main.h"
 
+
 int main(int argc, char **argv) {
 	global_set_process(WORKER);
 	/*Al iniciar leerá el archivo de configuración del nodo y

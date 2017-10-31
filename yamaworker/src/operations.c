@@ -4,13 +4,11 @@ static yamaworker_t *config;
 static socket_t sockWORKER;
 static socket_t sockMS;
 
-
 void operation_init(yamaworker_t* c, socket_t sockworker, socket_t sockms) {
 	config = c;
 	sockWORKER = sockworker;
 	sockMS = sockms;
 }
-
 
 char *obtener_contenido_databin(int bloque){
 	return "hola pepe";
