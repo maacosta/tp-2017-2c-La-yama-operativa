@@ -5,6 +5,7 @@
 #include "../../common/socket.h"
 #include "../../common/protocol.h"
 #include "configuration.h"
+#include "filesystem.h"
 #include "server.h"
 
 #endif /* MAIN_YAMA_H_ */

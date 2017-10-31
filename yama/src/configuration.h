@@ -16,6 +16,7 @@ typedef struct{
 	char* yamafs_puerto;
 	int retardo_planificacion;
 	char* algoritmo_balanceo;
+	unsigned int disponibilidad_base;
 } yama_t;
 
 yama_t *config_leer(const char* path);

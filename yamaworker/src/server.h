@@ -28,6 +28,8 @@
 
 socket_t create_server();
 
+socket_t escuchar_master();
+
 void server_liberar();
 
 

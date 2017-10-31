@@ -7,6 +7,7 @@
 #include "serial_string.h"
 #include "socket.h"
 
+#define NUMERO_JOB_SIZE 3
 #define RESPUESTA_SIZE 2
 #define NOMBRE_NODO_SIZE 20
 #define IP_SIZE 16
@@ -25,15 +26,12 @@ typedef enum {
 	OP_ERROR = 0,		//Se utiliza para responder cualquier error, el detalle queda en el emisor
 	OP_HANDSHAKE,
 
-	OP_YAM_Verificar_Estado,
+	OP_YAM_Enviar_Estado,
 	OP_YAM_Solicitar_Transformacion,
-	OP_YAM_Enviar_Estado_Transformacion,
+	OP_YAM_Replanificar_Transformacion,
 	OP_YAM_Solicitar_Reduccion,
-	OP_YAM_Enviar_Estado_Reduccion,
 	OP_YAM_Solicitar_Reduccion_Global,
-	OP_YAM_Enviar_Estado_Reduccion_Global,
 	OP_YAM_Solicitar_Almacenamiento_Final,
-	OP_YAM_Enviar_Estado_Almacenamiento_Final,
 
 	OP_WRK_Iniciar_Transformacion,
 	OP_WRK_Iniciar_Reduccion,
@@ -42,6 +40,7 @@ typedef enum {
 
 	OP_FSY_Informacion_Archivo,
 	OP_FSY_Almacenar_Archivo,
+	OP_FSY_Obtener_Nodos
 } operation_t;
 
 typedef struct {
@@ -54,6 +53,43 @@ typedef struct {
 	header_t header;
 	unsigned char *payload;
 } packet_t;
+
+typedef enum {
+	ETAPA_Transformacion,
+	ETAPA_Reduccion_Local,
+	ETAPA_Reduccion_Global,
+	ETAPA_Almacenamiento_Final
+} etapa_t;
+
+typedef enum {
+	ESTADO_En_Proceso,
+	ESTADO_Error_Replanifica,
+	ESTADO_Finalizado_OK,
+	ESTADO_Error,
+} estado_t;
+
+typedef enum {
+	RESULTADO_Error,
+	RESULTADO_OK,
+} resultado_t;
+
+typedef struct {
+	char nodo[NOMBRE_NODO_SIZE];
+	char ip[IP_SIZE];
+	char puerto[PUERTO_SIZE];
+	unsigned int wl;
+	unsigned int executed_jobs;
+} detalle_nodo_t;
+
+typedef struct {
+	int job;
+	socket_t master;
+	char nodo[NOMBRE_NODO_SIZE];
+	int bloque;
+	etapa_t etapa;
+	char archivo_temporal[NOMBRE_ARCHIVO_TMP];
+	estado_t estado;
+} estado_master_t;
 
 header_t protocol_get_header(unsigned int operation, unsigned long size);
 

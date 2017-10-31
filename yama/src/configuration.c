@@ -16,7 +16,8 @@ yama_t *config_leer(const char* path) {
 	config->yamafs_ip = config_get_string_value(c, "FS_IP");
 	config->yamafs_puerto = config_get_string_value(c, "FS_PUERTO");
 	config->retardo_planificacion = config_get_int_value(c, "RETARDO_PLANIFICACION");
-	config->algoritmo_balanceo= config_get_string_value(c, "ALGORITMO_BALANCEO");
+	config->algoritmo_balanceo = config_get_string_value(c, "ALGORITMO_BALANCEO");
+	config->disponibilidad_base = config_get_int_value(c, "DISPONIBILIDAD_BASE");
 
 	return config;
 }

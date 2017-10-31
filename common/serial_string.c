@@ -25,10 +25,12 @@ size_t serial_string_pack(char *buf, char *format, ...) {
 	size_t len = string_length(b);
 	memcpy(buf, b, len + 1);
 	free(b);
+	log_msg_info("serial_string_pack %s", buf);
 	return len + 1;
 }
 
 void serial_string_unpack(char *buf, char *format, ...) {
+	log_msg_info("serial_string_unpack %s", buf);
 	va_list ap;
 	va_start(ap, format);
 
