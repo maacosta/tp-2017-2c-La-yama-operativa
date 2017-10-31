@@ -1,5 +1,6 @@
 #include "server.h"
 
+
 static socket_t aceptar_cliente(socket_t server) {
 	socket_t cliente = socket_accept(server);
 	if(cliente == -1) return -1;
