@@ -200,7 +200,7 @@ bool transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sock
 	serial_string_unpack(packet->payload, "s", &archivo_a_procesar);
 	protocol_packet_free(packet);
 
-	log_msg_info("Etapa Transformacion: archivo [ %s ]", archivo_a_procesar);
+	log_msg_info("Etapa Transformacion: archivo [ %d ]", sockMaster);
 
 	header_t cabecera;
 	packet_t paquete;

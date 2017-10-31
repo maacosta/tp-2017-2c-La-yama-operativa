@@ -109,7 +109,7 @@ void ejecutar_transformacion(socket_t sockYama, char *archivo_transformador, cha
 	size_t size;
 
 	//enviar Solicitar Transformacion
-	size = serial_string_pack(nombre_archivo, "s", archivo_origen);
+	size = serial_string_pack(&nombre_archivo, "s", archivo_origen);
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, &nombre_archivo);
 	if(!protocol_packet_send(sock, &paquete))
