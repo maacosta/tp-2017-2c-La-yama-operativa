@@ -6,5 +6,6 @@
 #include "configuration.h"
 #include "consola.h"
 #include "server.h"
+#include "directorio.h"
 
 #endif /* MAIN_YAMAFS_H_ */

@@ -1,31 +1,17 @@
-/*
- * server.h
- *
- *  Created on: 19/9/2017
- *      Author: utnso
- */
-
 #ifndef SRC_SERVER_H_
 #define SRC_SERVER_H_
 
-struct arg_struct {
-	char* puerto_listen;
-};
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <commons/config.h>
+#include <stdbool.h>
+#include <limits.h>
+#include <commons/collections/list.h>
+#include "../../common/global.h"
+#include "../../common/socket.h"
 #include "../../common/protocol.h"
+#include "../../common/thread.h"
 #include "configuration.h"
-#include <pthread.h>
 
+void server_crear_fs(yamafs_t *config);
 
-bool fsOperativo;
+void server_liberar();
 
-bool yamaEstaConectada;
-
-void server_crear(yamafs_t *config);
-void server_iniciar(void* argumentos);
 #endif /* SRC_SERVER_H_ */

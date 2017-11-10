@@ -11,6 +11,7 @@ typedef struct{
 	char* log_file;
 	char* log_name;
 	char* puerto;
+	char* metadata_path;
 } yamafs_t;
 
 yamafs_t *config_leer(const char* path);

@@ -1,33 +1,22 @@
-/*
- * directorio.h
- *
- *  Created on: 18/9/2017
- *      Author: utnso
- */
-
 #ifndef SRC_DIRECTORIO_H_
 #define SRC_DIRECTORIO_H_
 
-
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <commons/config.h>
+#include "configuration.h"
 
 typedef struct {
-	int id;
+	int index;
 	char nombre[255];
-	int padreId;
-	pthread_rwlock_t lock;
-} t_directorio;
+	int padre;
+} directorio_t;
 
-
-
-t_directorio* directorio_crear();
-t_directorio* directorio_crear_raiz();
-void directorio_set_nombre(t_directorio* directorio, char* nombre);
-void directorio_set_padre(t_directorio* directorio, int padreId);
-void directorio_eliminar(t_directorio* directorio);
-void log_error_ya_existe_directorio(char* directorio, char* directorio_padre_nuevo);
-void log_error_directorio_no_existe(char* ruta_directorio);
-
+bool directorio_existe_config(yamafs_t *config);
+void directorio_borrar(yamafs_t *config);
+void directorio_crear(yamafs_t *config);
+int directorio_crear_dir(char *dir_path);
+void directorio_destruir();
 
 #endif /* SRC_DIRECTORIO_H_ */
