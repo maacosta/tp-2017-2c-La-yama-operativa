@@ -8,10 +8,10 @@
 #include "../../common/socket.h"
 #include "../../common/protocol.h"
 #include "configuration.h"
-#include "jobs_estados_master.h"
-#include "transformacion.h"
-#include "reduccion.h"
-#include "almacenamiento.h"
+#include "op_almacenamiento.h"
+#include "op_jobs_estados_master.h"
+#include "op_reduccion.h"
+#include "op_transformacion.h"
 
 
 void server_crear_yama(yama_t *config, socket_t sockfs, t_list *nodos);

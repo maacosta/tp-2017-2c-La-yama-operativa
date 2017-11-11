@@ -1,4 +1,4 @@
-#include "jobs_estados_master.h"
+#include "op_jobs_estados_master.h"
 
 bool jem_consultar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos) {
 	int num_job;

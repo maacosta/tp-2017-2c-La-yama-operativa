@@ -1,5 +1,5 @@
-#ifndef SRC_REDUCCION_H_
-#define SRC_REDUCCION_H_
+#ifndef SRC_OP_REDUCCION_H_
+#define SRC_OP_REDUCCION_H_
 
 #include <stdbool.h>
 #include <commons/collections/list.h>
@@ -32,4 +32,4 @@ bool reduccion_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_ma
 
 bool reduccion_global_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos);
 
-#endif /* SRC_REDUCCION_H_ */
+#endif /* SRC_OP_REDUCCION_H_ */

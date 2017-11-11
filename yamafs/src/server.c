@@ -2,8 +2,9 @@
 
 pthread_t thSRV;
 socket_t sockSRV;
-bool fsOperativo;
-bool yamaEstaConectada;
+static bool estado_estable;
+static bool yama_conectada;
+static bool esperar_DNs;
 
 static socket_t aceptar_cliente(socket_t server) {
 	socket_t cliente = socket_accept(server);
@@ -14,7 +15,13 @@ static socket_t aceptar_cliente(socket_t server) {
 		socket_close(cliente);
 		return -1;
 	}
-	if(cabecera.process != MASTER) {
+	//no está en estado-estable -> solo permitir conectar datanodes
+	if(!estado_estable && cabecera.process != DATANODE) {
+		socket_close(cliente);
+		return -1;
+	}
+	//está en estado-estable -> permitir conectar yama, workers y datanodes?
+	if(estado_estable && cabecera.process != DATANODE && cabecera.process != YAMA && cabecera.process != WORKER) {
 		socket_close(cliente);
 		return -1;
 	}
@@ -32,29 +39,41 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 		return false;
 	}
 	bool resultado;
-	switch(packet.header.operation) {
-	case OP_YAM_Enviar_Estado:
-		//resultado = jem_consultar(&packet, cliente, estados_master, nodos);
-		break;
-	case OP_YAM_Solicitar_Transformacion:
-		//resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
-		break;
-	case OP_YAM_Replanificar_Transformacion:
-		;
-		break;
-	case OP_YAM_Solicitar_Reduccion:
-		//resultado = reduccion_iniciar(&packet, cliente, estados_master, nodos);
-		break;
-	case OP_YAM_Solicitar_Reduccion_Global:
-		//resultado = reduccion_global_iniciar(&packet, cliente, estados_master, nodos);
-		break;
-	case OP_YAM_Solicitar_Almacenamiento_Final:
-		//resultado = almacenamiento_iniciar(&packet, cliente, estados_master, nodos);
-		break;
-	default:
-		log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
-		protocol_packet_free(&packet);
-		return false;
+	if(packet.header.process == YAMA) {
+		switch(packet.header.operation) {
+		case OP_FSY_Informacion_Archivo:
+			//resultado = jem_consultar(&packet, cliente, estados_master, nodos);
+			break;
+		case OP_FSY_Almacenar_Archivo:
+			//resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
+			break;
+		case OP_FSY_Obtener_Nodos:
+			;
+			break;
+		default:
+			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
+			protocol_packet_free(&packet);
+			return false;
+		}
+	}
+	else if(packet.header.process == DATANODE) {
+		switch(packet.header.operation) {
+		case OP_FSY_Registrar_Nodo:
+			//resultado = jem_consultar(&packet, cliente, estados_master, nodos);
+			break;
+		default:
+			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
+			protocol_packet_free(&packet);
+			return false;
+		}
+	}
+	else if(packet.header.process == WORKER) {
+		switch(packet.header.operation) {
+		default:
+			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
+			protocol_packet_free(&packet);
+			return false;
+		}
 	}
 	if(!resultado)
 		socket_close(cliente);
@@ -89,7 +108,10 @@ void server_crear(yamafs_t *config) {
 	socket_close(sockSRV);
 }
 
-void server_crear_fs(yamafs_t *config) {
+void server_crear_fs(yamafs_t *config, bool esperarDNs) {
+	esperar_DNs = esperarDNs;
+	estado_estable = false;
+	yama_conectada = false;
 	thSRV = thread_create(server_crear, config);
 }
 

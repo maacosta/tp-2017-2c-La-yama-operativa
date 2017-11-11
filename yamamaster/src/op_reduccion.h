@@ -1,5 +1,5 @@
-#ifndef SRC_REDUCCION_H_
-#define SRC_REDUCCION_H_
+#ifndef SRC_OP_REDUCCION_H_
+#define SRC_OP_REDUCCION_H_
 
 #include "../../common/thread.h"
 #include "../../common/protocol.h"
@@ -18,4 +18,4 @@ void ejecutar_reduccion(socket_t sockYama, char *archivo_reductor);
 
 void ejecutar_reduccion_global(socket_t sockYama, char *archivo_reductor);
 
-#endif /* SRC_REDUCCION_H_ */
+#endif /* SRC_OP_REDUCCION_H_ */

@@ -1,4 +1,4 @@
-#include "reduccion.h"
+#include "op_reduccion.h"
 
 static socket_t sock;
 static char *nombre_arch_reductor;

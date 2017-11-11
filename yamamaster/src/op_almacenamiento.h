@@ -1,5 +1,5 @@
-#ifndef SRC_ALMACENAMIENTO_H_
-#define SRC_ALMACENAMIENTO_H_
+#ifndef SRC_OP_ALMACENAMIENTO_H_
+#define SRC_OP_ALMACENAMIENTO_H_
 
 #include "../../common/thread.h"
 #include "../../common/protocol.h"
@@ -7,4 +7,4 @@
 
 void ejecutar_almacenamiento(socket_t sockYama, char *archivo_destino);
 
-#endif /* SRC_ALMACENAMIENTO_H_ */
+#endif /* SRC_OP_ALMACENAMIENTO_H_ */

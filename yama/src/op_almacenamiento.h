@@ -1,5 +1,5 @@
-#ifndef SRC_ALMACENAMIENTO_H_
-#define SRC_ALMACENAMIENTO_H_
+#ifndef SRC_OP_ALMACENAMIENTO_H_
+#define SRC_OP_ALMACENAMIENTO_H_
 
 #include <stdbool.h>
 #include <commons/collections/list.h>
@@ -12,4 +12,4 @@
 
 bool almacenamiento_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos);
 
-#endif /* SRC_ALMACENAMIENTO_H_ */
+#endif /* SRC_OP_ALMACENAMIENTO_H_ */

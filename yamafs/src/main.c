@@ -2,6 +2,7 @@
 
 yamafs_t *config;
 bool p_clean;
+bool esperar_DNs;
 
 void validar_parametros(int argc, char **argv) {
 	if(!(argc == 1 || (argc == 2 && string_equals_ignore_case(argv[1], "--clean")))) {
@@ -29,12 +30,14 @@ void crear_estructura_de_datos() {
 }
 
 void inicializar() {
+	esperar_DNs = false;
 	if(p_clean) {
 		//eliminar estado anterior
 		borrar_estructura_de_datos();
 	}
 	if(tiene_estructura_de_datos()) {
 		//esperar DNs
+		esperar_DNs = true;
 		cargar_estructura_de_datos();
 	}
 	else {
@@ -55,7 +58,7 @@ int main(int argc, char **argv) {
 
 	inicializar();
 
-	//server_crear_fs(config);
+	server_crear_fs(config, esperar_DNs);
 	consola_iniciar(config);
 
 	finalizar();

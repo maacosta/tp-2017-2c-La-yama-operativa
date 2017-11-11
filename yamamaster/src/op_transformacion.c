@@ -1,4 +1,4 @@
-#include "transformacion.h"
+#include "op_transformacion.h"
 
 static socket_t sock;
 static char *nombre_arch_transformador;

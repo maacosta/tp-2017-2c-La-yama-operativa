@@ -1,4 +1,4 @@
-#include "reduccion.h"
+#include "op_reduccion.h"
 
 bool reduccion_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos) {
 	log_msg_info("Etapa Reduccion Local: socket [ %d ]", sockMaster);

@@ -9,8 +9,9 @@
 #include "../../common/protocol.h"
 #include "../../common/thread.h"
 #include "configuration.h"
+#include "op_nodos.h"
 
-void server_crear_fs(yamafs_t *config);
+void server_crear_fs(yamafs_t *config, bool esperarDNs);
 
 void server_liberar();
 

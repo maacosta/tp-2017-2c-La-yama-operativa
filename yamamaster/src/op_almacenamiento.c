@@ -1,4 +1,4 @@
-#include "almacenamiento.h"
+#include "op_almacenamiento.h"
 
 static socket_t sock;
 static char *nombre_arch_destino;
