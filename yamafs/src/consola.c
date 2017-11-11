@@ -36,6 +36,41 @@ static void comando_format(char **cmd) {
 	puts("Se formateo el file system");
 }
 
+static void comando_rm(char **cmd) {
+	//contar parametros
+	int i = 0;
+	void iterar(char *param) {
+		i++;
+	}
+	string_iterate_lines(cmd, (void*)iterar);
+	//validar parametros
+	if(i != 2 && i != 3 && i != 5) {
+		puts("La cantidad de parametros es incorrecta");
+		return;
+	}
+
+	int rdo;
+	switch(i) {
+	case 2: //rm path_archivo
+		break;
+	case 3: //rm -d path_directorio
+		if(!string_equals_ignore_case(cmd[1], "-d")) {
+			puts("Los parametros son incorrectos");
+			return;
+		}
+		rdo = directorio_borrar_dir(cmd[2]);
+		switch(rdo) {
+		case 0: puts("Se borro el directorio"); break;
+		case -1: puts("El path indicado debe empezar con /"); break;
+		case -2: puts("No existe el directorio a borrar"); break;
+		case -3: puts("El directorio contiene subdirectorios"); break;
+		}
+		break;
+	case 5: //rm -b path_archivo nro_bloque nro_copia
+		break;
+	}
+}
+
 static void comando_mkdir(char **cmd) {
 	char *path_dir;
 	//obtener parametros
@@ -72,10 +107,11 @@ void consola_iniciar() {
 	do {
 		comando = readline(">");
 		cmd = string_split(comando, " ");
-		if(strncmp(comando, "ayuda", 5) == 0) comando_ayuda(cmd);
-		else if(strncmp(comando, "format", 6) == 0) comando_format(cmd);
-		else if(strncmp(comando, "mkdir", 5) == 0) comando_mkdir(cmd);
-		else if(strncmp(comando, "salir", 5) == 0) comando_salir(cmd);
+		if(string_equals_ignore_case(cmd[0], "ayuda")) comando_ayuda(cmd);
+		else if(string_equals_ignore_case(cmd[0], "format")) comando_format(cmd);
+		else if(string_equals_ignore_case(cmd[0], "rm")) comando_rm(cmd);
+		else if(string_equals_ignore_case(cmd[0], "mkdir")) comando_mkdir(cmd);
+		else if(string_equals_ignore_case(cmd[0], "salir")) comando_salir(cmd);
 		free(comando);
 		string_iterate_lines(cmd, (void*) free);
 		free(cmd);

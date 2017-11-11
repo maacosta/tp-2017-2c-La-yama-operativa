@@ -1,4 +1,4 @@
 LOG_FILE=log.txt
 LOG_NAME=yamafs
 PUERTO=5003
-METADATA_PATH=meta_data
+METADATA_PATH=./meta_data

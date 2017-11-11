@@ -1,15 +1,23 @@
 #include "directorio.h"
 
+#define KEY_PRE "INDEX"
+#define KEY_DIR "DIRECTORIO"
+#define KEY_PAD "PADRE"
+#define ROOT_NAME "root"
+#define MAX_DIR 100
+#define DIR_NOM_VACIO ""
+#define DIR_PAD_VACIO -2
+
 t_config *dir_config;
-directorio_t dir[100];
+directorio_t dir[MAX_DIR];
 
 bool directorio_existe_config(yamafs_t *config) {
-	char *path = string_from_format("./%s/directorio.dat", config->metadata_path);
+	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
 	return access(path, F_OK) != -1;
 }
 
 void directorio_borrar(yamafs_t *config) {
-	char *path = string_from_format("./%s/directorio.dat", config->metadata_path);
+	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
 	if(access(path, F_OK) != -1) {
 		if(remove(path) != 0) {
 			log_msg_error("No se pudo borrar el archivo %s", path);
@@ -29,29 +37,29 @@ static void crear_archivo(char *filepath) {
 }
 
 void directorio_crear(yamafs_t *config) {
-	char *path = string_from_format("./%s/directorio.dat", config->metadata_path);
+	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
 
 	crear_archivo(path);
 
 	dir_config = config_create(path);
 	int i;
 	char *key;
-	for(i = 0; i < 100; i++) {
+	for(i = 0; i < MAX_DIR; i++) {
 		dir[i].index = i;
 		if(i == 0) {
-			strcpy(dir[i].nombre, "root");
+			strcpy(dir[i].nombre, ROOT_NAME);
 			dir[i].padre = -1;
 		}
 		else {
-			strcpy(dir[i].nombre, "");
-			dir[i].padre = -2;
+			strcpy(dir[i].nombre, DIR_NOM_VACIO);
+			dir[i].padre = DIR_PAD_VACIO;
 		}
 
-		key = string_from_format("%s%d%s", "INDEX", i, "DIRECTORIO");
+		key = string_from_format("%s%d%s", KEY_PRE, i, KEY_DIR);
 		config_set_value(dir_config, key, dir[i].nombre);
 		free(key);
 
-		key = string_from_format("%s%d%s", "INDEX", i, "PADRE");
+		key = string_from_format("%s%d%s", KEY_PRE, i, KEY_PAD);
 		config_set_value(dir_config, key, string_itoa(dir[i].padre));
 		free(key);
 	}
@@ -60,29 +68,59 @@ void directorio_crear(yamafs_t *config) {
 	free(path);
 }
 
+void directorio_cargar(yamafs_t *config) {
+	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
+
+	dir_config = config_create(path);
+
+	int i;
+	char *key, *val;
+	for(i = 0; i < MAX_DIR; i++) {
+		dir[i].index = i;
+
+		key = string_from_format("%s%d%s", KEY_PRE, i, KEY_DIR);
+		val = config_get_string_value(dir_config, key); //val no se libera porque se modifica el tad del config
+		if(val == NULL) config_set_value(dir_config, key, DIR_NOM_VACIO);
+		strcpy(dir[i].nombre, val == NULL ? DIR_NOM_VACIO : val);
+		free(key);
+
+		key = string_from_format("%s%d%s", KEY_PRE, i, KEY_PAD);
+		dir[i].padre = config_get_int_value(dir_config, key);
+		free(key);
+	}
+}
+
 static directorio_t *buscar_por_nombre_y_padre(char *dir_name, int padre) {
 	int i;
-	for(i = 0; i < 100; i++)
+	for(i = 0; i < MAX_DIR; i++)
 		if(string_equals_ignore_case(dir[i].nombre, dir_name) && dir[i].padre == padre)
 			return &dir[i];
 	return NULL;
 }
 
+static bool tiene_subdirectorios(directorio_t *directorio) {
+	int i;
+	for(i = 0; i < MAX_DIR; i++)
+		if(dir[i].padre == directorio->index)
+			return true;
+	return false;
+}
+
 static directorio_t *crear_directorio(char *dir_name, int padre) {
 	//buscar nodo libre
 	int i;
-	for(i = 0; i < 100; i++)
-		if(dir[i].padre == -2) break;
+	for(i = 0; i < MAX_DIR; i++)
+		if(dir[i].padre == DIR_PAD_VACIO) break;
 	//si no encontro returnar nulo
-	if(i == 100) return NULL;
+	if(i == MAX_DIR) return NULL;
 	//si encontro modificar nodo
 	strcpy(dir[i].nombre, dir_name);
 	dir[i].padre = padre;
 	//guardar config
-	char *key = string_from_format("%s%d%s", "INDEX", dir[i].index, "DIRECTORIO");
+	char *key = string_from_format("%s%d%s", KEY_PRE, dir[i].index, KEY_DIR);
 	config_set_value(dir_config, key, dir[i].nombre);
 	free(key);
-	key = string_from_format("%s%d%s", "INDEX", dir[i].index, "PADRE");
+	key = string_from_format("%s%d%s", KEY_PRE, dir[i].index, KEY_PAD);
 	config_set_value(dir_config, key, string_itoa(dir[i].padre));
 	free(key);
 	config_save(dir_config);
@@ -90,11 +128,25 @@ static directorio_t *crear_directorio(char *dir_name, int padre) {
 	return &dir[i];
 }
 
+static void borrar_directorio(directorio_t *directorio) {
+	//actualizar nodo
+	strcpy(directorio->nombre, DIR_NOM_VACIO);
+	directorio->padre = DIR_PAD_VACIO;
+	//guardar config
+	char *key = string_from_format("%s%d%s", KEY_PRE, directorio->index, KEY_DIR);
+	config_set_value(dir_config, key, directorio->nombre);
+	free(key);
+	key = string_from_format("%s%d%s", KEY_PRE, directorio->index, KEY_PAD);
+	config_set_value(dir_config, key, string_itoa(directorio->padre));
+	free(key);
+	config_save(dir_config);
+}
+
 int directorio_crear_dir(char *dir_path) {
 	if(!string_starts_with(dir_path, "/")) return -1;
 
 	char **dirs = string_split(dir_path, "/");
-	directorio_t *directorio = buscar_por_nombre_y_padre("root", -1);
+	directorio_t *directorio = buscar_por_nombre_y_padre(ROOT_NAME, -1);
 	int padre = directorio->index;
 	bool crearDirectorio = false;
 	int rdo = 0;
@@ -116,6 +168,36 @@ int directorio_crear_dir(char *dir_path) {
 		}
 	}
 	string_iterate_lines(dirs, (void*)iterar);
+
+	string_iterate_lines(dirs, (void*)free);
+	free(dirs);
+	return rdo;
+}
+
+int directorio_borrar_dir(char *dir_path) {
+	if(!string_starts_with(dir_path, "/")) return -1;
+
+	char **dirs = string_split(dir_path, "/");
+	directorio_t *directorio = buscar_por_nombre_y_padre(ROOT_NAME, -1);
+	int padre = directorio->index;
+	bool existeDirectorio = true;
+	int rdo = 0;
+	void iterar(char *d) {
+		if(existeDirectorio) {
+			//buscar nodo
+			directorio = buscar_por_nombre_y_padre(d, padre);
+			//obtener padre o flag
+			if(directorio != NULL) padre = directorio->index;
+			else existeDirectorio = false;
+		}
+	}
+	string_iterate_lines(dirs, (void*)iterar);
+	if(existeDirectorio) {
+		//buscar si directorio tiene subdirectorios
+		if(tiene_subdirectorios(directorio)) rdo = -3;
+		else borrar_directorio(directorio);
+	}
+	else rdo = -2;
 
 	string_iterate_lines(dirs, (void*)free);
 	free(dirs);

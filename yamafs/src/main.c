@@ -20,6 +20,10 @@ void borrar_estructura_de_datos() {
 	directorio_borrar(config);
 }
 
+void cargar_estructura_de_datos() {
+	directorio_cargar(config);
+}
+
 void crear_estructura_de_datos() {
 	directorio_crear(config);
 }
@@ -31,11 +35,16 @@ void inicializar() {
 	}
 	if(tiene_estructura_de_datos()) {
 		//esperar DNs
+		cargar_estructura_de_datos();
 	}
 	else {
 		//inicializar en estado no-estable
 		crear_estructura_de_datos();
 	}
+}
+
+void finalizar() {
+	directorio_destruir();
 }
 
 int main(int argc, char **argv) {
@@ -48,6 +57,8 @@ int main(int argc, char **argv) {
 
 	//server_crear_fs(config);
 	consola_iniciar(config);
+
+	finalizar();
 
 	config_liberar(config);
 
