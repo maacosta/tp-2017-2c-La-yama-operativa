@@ -18,28 +18,14 @@ bool directorio_existe_config(yamafs_t *config) {
 
 void directorio_borrar(yamafs_t *config) {
 	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
-	if(access(path, F_OK) != -1) {
-		if(remove(path) != 0) {
-			log_msg_error("No se pudo borrar el archivo %s", path);
-			exit(EXIT_FAILURE);
-		}
-	}
+	global_deletefile(path);
 	free(path);
-}
-
-static void crear_archivo(char *filepath) {
-	FILE *d = fopen(filepath, "w");
-	if(d == NULL) {
-		log_msg_error("No se pudo crear el archivo %s", filepath);
-		exit(EXIT_FAILURE);
-	}
-	fclose(d);
 }
 
 void directorio_crear(yamafs_t *config) {
 	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
 
-	crear_archivo(path);
+	if(!global_createfile(path)) exit(EXIT_FAILURE);
 
 	dir_config = config_create(path);
 	int i;

@@ -36,3 +36,21 @@ ssize_t global_readfile(const char *path, char *buffer) {
 	buffer[fsize] = '\0';
 	return ok ? fsize : -1;
 }
+
+bool global_createfile(const char *filepath) {
+	FILE *d = fopen(filepath, "w");
+	if(d == NULL) {
+		log_msg_error("No se pudo crear el archivo %s", filepath);
+		return false;
+	}
+	fclose(d);
+	return true;
+}
+
+void global_deletefile(const char *filepath) {
+	if(access(filepath, F_OK) != -1) {
+		if(remove(filepath) != 0) {
+			log_msg_error("No se pudo borrar el archivo %s", filepath);
+		}
+	}
+}

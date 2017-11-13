@@ -65,5 +65,7 @@ int main(int argc, char **argv) {
 
 	ejecutar_almacenamiento(sockYAMA, p_destino);
 
+	config_liberar(config);
+
 	return EXIT_SUCCESS;
 }

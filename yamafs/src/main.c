@@ -19,14 +19,17 @@ bool tiene_estructura_de_datos() {
 
 void borrar_estructura_de_datos() {
 	directorio_borrar(config);
+	nodo_borrar(config);
 }
 
 void cargar_estructura_de_datos() {
 	directorio_cargar(config);
+	nodo_cargar(config);
 }
 
 void crear_estructura_de_datos() {
 	directorio_crear(config);
+	nodo_crear(config);
 }
 
 void inicializar() {

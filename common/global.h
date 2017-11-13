@@ -22,4 +22,8 @@ process_t global_get_process();
 
 ssize_t global_readfile(const char *path, char *buffer);
 
+bool global_createfile(const char *filepath);
+
+void global_deletefile(const char *filepath);
+
 #endif /* global_h */
