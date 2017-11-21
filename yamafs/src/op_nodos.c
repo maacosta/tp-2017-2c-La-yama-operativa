@@ -9,7 +9,13 @@ bool nodos_registrar(packet_t *packet, socket_t sockDN, bool *esperarDNs, bool *
 	log_msg_info("Registrar nodo [ %d ]", sockDN);
 
 	if(*esperarDNs) {
-		;
+		//solo acepta nodos que figuran en los nodos registrados anteriormente
+		if(nodo_existe(&nodo))
+			nodo_notificar_existencia(&nodo);
+		//si todos los nodos estan registrados o los archivos que figuran en el filesystem tienen almenos una copia
+		//TODO falta considerar cuando en el filesystem los archivos tienen al menos una copia de los mismos
+		if(nodo_todos_registrados() || false)
+			*esperarDNs = false;
 	}
 	else {
 		nodo_agregar(&nodo);

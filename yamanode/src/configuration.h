@@ -11,7 +11,7 @@ typedef struct{
 	char* yamafs_ip;
 	char* yamafs_puerto;
 	char* nombreNodo;
-	char* ruta_databin;
+	char* path_databin;
 	char* log_file;
 	char* log_name;
 

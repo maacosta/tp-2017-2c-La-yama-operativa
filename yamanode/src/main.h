@@ -7,5 +7,6 @@
 #include "../../common/socket.h"
 #include "../../common/protocol.h"
 #include "configuration.h"
+#include "memoria.h"
 
 #endif /* SRC_MAIN_H_ */
