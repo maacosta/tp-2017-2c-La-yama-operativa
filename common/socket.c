@@ -155,6 +155,7 @@ static size_t sendall(socket_t sockfd, const unsigned char *buf, size_t len) {
 		ssize_t n = send(sockfd, buf + bytes_sent, len - bytes_sent, 0);
 		if(n == -1) {
 			log_msg_error(strerror(errno));
+			return bytes_sent;
 		}
 		bytes_sent += n;
 	}

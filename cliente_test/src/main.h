@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "../../common/global.h"
 #include "../../common/socket.h"
 #include "../../common/protocol.h"
 #include <string.h>

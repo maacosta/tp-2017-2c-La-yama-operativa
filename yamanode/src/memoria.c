@@ -30,6 +30,7 @@ void *memoria_obtener_bloque(int offset, int len) {
     void *bloque = malloc(len);
     memcpy(bloque, addr, len);
     munmap(addr, len);
+    log_msg_info("Se lee de Memoria offset [ %d ] len [ %d ]", offset, len);
     return bloque;
 }
 
@@ -42,6 +43,7 @@ void memoria_almacenar_bloque(int offset, int len, void *bloque) {
     }
     memcpy(addr, bloque, len);
     munmap(addr, len);
+    log_msg_info("Se almacena en Memoria offset [ %d ] len [ %d ]", offset, len);
 }
 
 void memoria_destruir() {

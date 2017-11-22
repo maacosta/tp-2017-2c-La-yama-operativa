@@ -1,8 +1,8 @@
 #include "main.h"
 
-int sockworker;
+socket_t sockO, sockD;
 
-socket_t conectar_con_worker_prueba(char *ip, char *puerto) {
+socket_t conectar_con(char *ip, char *puerto) {
 	socket_t sock;
 	if((sock = socket_connect(ip, puerto)) == -1) {
 		exit(EXIT_FAILURE);
@@ -18,9 +18,48 @@ socket_t conectar_con_worker_prueba(char *ip, char *puerto) {
 	return sock;
 }
 
+socket_t aceptar_cliente(socket_t server) {
+	socket_t cliente = socket_accept(server);
+	if(cliente == -1) return -1;
+
+	header_t cabecera;
+	if(!protocol_handshake_receive(cliente, &cabecera)) {
+		socket_close(cliente);
+		return -1;
+	}
+	if(!protocol_handshake_send(cliente)) {
+		socket_close(cliente);
+		return -1;
+	}
+	return cliente;
+}
+
+/*
+ * cliente_test <proceso> <opcion> <ip> <puerto>
+<proceso>
+	YAMA = 1,
+	FS = 2,
+	MASTER = 3,
+	DATANODE = 4,
+	WORKER = 5
+<ip> 127.0.0.1
+ */
 int main (int argc, char **argv)  {
+	process_t p = atoi(argv[1]);
+	int opcion = atoi(argv[2]);
+	char *ip = argv[3];
+	char *puerto = argv[4];
 
-	sockworker = conectar_con_worker_prueba("127.0.0.1","5005");
+	global_set_process(p);
+	log_init("log.txt", "test", true);
 
+	switch(p) {
+	case FS:
+		sockO = socket_init(NULL, puerto);
+		sockD = aceptar_cliente(sockO);
+
+		probar_yamafs(sockO, sockD, opcion);
+		break;
+	}
 
 }

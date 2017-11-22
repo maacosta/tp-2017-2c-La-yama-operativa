@@ -43,7 +43,7 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 		resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
 		break;
 	case OP_YAM_Replanificar_Transformacion:
-		;
+		;//TODO asociar a tabla de estados ambas copias de los bloques
 		break;
 	case OP_YAM_Solicitar_Reduccion:
 		resultado = reduccion_iniciar(&packet, cliente, estados_master, nodos);

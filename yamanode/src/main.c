@@ -1,5 +1,6 @@
 #include "main.h"
 
+#define BLOQUE_LEN 1048576 //1024*1024
 yamaDataNodo_t *config;
 socket_t sockFS;
 
@@ -20,13 +21,16 @@ socket_t conectar_con_yamafs(yamaDataNodo_t *config) {
 }
 
 void atender_solicitudes() {
+	packet_t packet;
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
+	int num_bloque;
+	void *bloque;
 
 	//registrar
 	char buffer[NOMBRE_NODO_SIZE + BLOQUE_SIZE_E + 1];
-	size = serial_string_pack(&buffer, "s h", config->nombreNodo, 98);
+	size = serial_string_pack(&buffer, "s h", config->nombreNodo, memoria_obtener_tamanio() / BLOQUE_LEN);
 	cabecera = protocol_get_header(OP_FSY_Registrar_Nodo, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockFS, &paquete))
@@ -34,15 +38,35 @@ void atender_solicitudes() {
 
 	//atender solicitudes de yamafs
 	while(true) {
-		packet_t packet = protocol_packet_receive(sockFS);
+		packet = protocol_packet_receive(sockFS);
 		if(packet.header.operation == OP_ERROR) {
 			socket_close(sockFS);
 			exit(EXIT_FAILURE);
 		}
 		switch(packet.header.operation) {
 		case OP_DND_Obtener_Bloque:
+			serial_string_unpack(packet.payload, "h", &num_bloque);
+			protocol_packet_free(&packet);
+
+			bloque = memoria_obtener_bloque(num_bloque, BLOQUE_LEN);
+
+			cabecera = protocol_get_header(OP_DND_Obtener_Bloque, BLOQUE_LEN);
+			paquete = protocol_get_packet(cabecera, &bloque);
+			if(!protocol_packet_send(sockFS, &paquete))
+				exit(EXIT_FAILURE);
 			break;
 		case OP_DND_Almacenar_Bloque:
+			serial_string_unpack(packet.payload, "h", &num_bloque);
+			protocol_packet_free(&packet);
+
+			packet = protocol_packet_receive(sockFS);
+
+			memoria_almacenar_bloque(num_bloque, packet.header.size, packet.payload);
+			protocol_packet_free(&packet);
+			break;
+		default:
+			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
+			protocol_packet_free(&packet);
 			break;
 		}
 	}
@@ -55,23 +79,13 @@ int main(int argc, char **argv) {
 
 	memoria_abrir(config);
 
-	printf("mmap size of [ %d ] bytes, [ %d ] kbytes, [ %d ] mbytes\n", memoria_obtener_tamanio(), memoria_obtener_tamanio() / 1024, memoria_obtener_tamanio() / (1024 * 1024));
-
-	char *txt = memoria_obtener_bloque(2, 1024);
-	memcpy(txt, "todo un loco", 1024);
-	memoria_almacenar_bloque(2, 1024, txt);
-
-	memoria_almacenar_bloque(1, 1024, "alejandro genio");
-
-	char *txt2 = memoria_obtener_bloque(1, 1024);
-
-	memoria_destruir();
-	/*
 	sockFS = conectar_con_yamafs(config);
 
 	if(sockFS != -1)
 		atender_solicitudes();
-*/
+
+	memoria_destruir();
+
 	config_liberar(config);
 
 	return EXIT_SUCCESS;
