@@ -2,12 +2,13 @@
 
 #define SOCKET_BACKLOG 5
 #define BUFFER_CAPACITY 1024
+#define BUFFER_PACKET 1452
 
 static struct addrinfo *create_addrinfo(const char *ip, const char *port) {
 	if(port != NULL) {
 		int n = atoi(port);
 		if(n < 1024 && n > 65535) {
-			log_msg_error("El numero [ %d ] de puerto debe estar entre 1024 y 65535", n);
+			log_msg_error("socket | El numero [ %d ] de puerto debe estar entre 1024 y 65535", n);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -21,7 +22,7 @@ static struct addrinfo *create_addrinfo(const char *ip, const char *port) {
 
 	int status = getaddrinfo(ip, port, &hints, &addr);
 	if(status != 0) {
-		log_msg_error(gai_strerror(status));
+		log_msg_error("socket | %s", gai_strerror(status));
 		exit(EXIT_FAILURE);
 	}
 
@@ -47,7 +48,7 @@ socket_t socket_init(const char *ip, const char *port) {
 	for(cur = addr; cur != NULL; cur = cur->ai_next) {
 		sockfd = create_socket(cur);
 		if(sockfd == -1) continue;
-		log_msg_info("Socket [ %d ] creado", sockfd);
+		log_msg_info("socket | [ %d ] creado", sockfd);
 
 		if(ip == NULL) {
 			ret = bind(sockfd, cur->ai_addr, cur->ai_addrlen);
@@ -61,28 +62,28 @@ socket_t socket_init(const char *ip, const char *port) {
 		}
 
 		if(ip == NULL) {
-			log_msg_info("Escuchando en puerto [ %s ]", port);
+			log_msg_info("socket | Escuchando en puerto [ %s ]", port);
 		} else {
-			log_msg_info("Conectado a [ %s:%s ]", ip, port);
+			log_msg_info("socket | Conectado a [ %s:%s ]", ip, port);
 		}
 		break;
 	}
 
 	freeaddrinfo(addr);
 	if(sockfd == -1) {
-		log_msg_error(strerror(errno));
+		log_msg_error("socket | No se pudo crear el socket");
 	}
 	if(ret == -1) {
-		log_msg_error(strerror(errno));
+		log_msg_error("socket | No se pudo conectar/bindear el socket");
 		sockfd = ret;
 	}
 
 	if(ip == NULL) {
 		if(listen(sockfd, SOCKET_BACKLOG) == -1) {
-			log_msg_error("Fallo la escucha en el puerto [ %s ]", port);
+			log_msg_error("socket | Fallo la escucha en el puerto [ %s ] %s", port, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		log_msg_info("Escuchando en el puerto [ %s ]", port);
+		log_msg_info("socket | Escuchando en el puerto [ %s ]", port);
 	}
 
 	return sockfd;
@@ -102,7 +103,7 @@ socket_t socket_listen(const char *port) {
 bool socket_select(fd_set *read_fdset) {
 	*read_fdset = active_fdset;
 	if(select(fdmax + 1, read_fdset, NULL, NULL, NULL) == -1) {
-		log_msg_error(strerror(errno));
+		log_msg_error("socket | %s", strerror(errno));
 		return false;
 	}
 	return true;
@@ -136,10 +137,10 @@ socket_t socket_accept(socket_t sv_sock) {
 	inet_ntop(AF_INET, &addr_in->sin_addr, remote_ip, INET_ADDRSTRLEN);
 
 	if(cli_sock != -1) {
-		log_msg_info("Cliente [ %s ] conectado al socket [ %d ]", remote_ip, cli_sock);
+		log_msg_info("socket | Cliente [ %s ] conectado al socket [ %d ]", remote_ip, cli_sock);
 	}
 	else {
-		log_msg_error("Error al aceptar el cliente desde [ %s ]", remote_ip);
+		log_msg_error("socket | Error al aceptar el cliente desde [ %s ]", remote_ip);
 	}
 
 	return cli_sock;
@@ -149,57 +150,46 @@ socket_t socket_connect(const char *ip, const char *port) {
 	return socket_init(ip, port);
 }
 
-static size_t sendall(socket_t sockfd, const unsigned char *buf, size_t len) {
-	size_t bytes_sent = 0;
+static size_t sendall(socket_t sockfd, void *buf, size_t len) {
+	size_t bytes_sent = 0, bytes_packet;
 	while(bytes_sent < len) {
-		ssize_t n = send(sockfd, buf + bytes_sent, len - bytes_sent, 0);
+		bytes_packet = len < BUFFER_PACKET ? len : BUFFER_PACKET;
+		ssize_t n = send(sockfd, buf + bytes_packet, bytes_packet, 0);
 		if(n == -1) {
-			log_msg_error(strerror(errno));
-			return bytes_sent;
+			log_msg_error("socket | Error al enviar por el socket [ %d ], se envio [ %d/%d ] %s", sockfd, bytes_sent, len, strerror(errno));
+			return n;
 		}
 		bytes_sent += n;
 	}
 	return bytes_sent;
 }
 
-size_t socket_send_string(const char *message, socket_t sockfd) {
-	size_t bytes_sent = sendall(sockfd, (const unsigned char *) message, strlen(message) + 1);
-	//log_inform("Sent string: \"%s\"", message);
-	return bytes_sent;
-}
-
-size_t socket_send_bytes(const unsigned char *message, size_t size, socket_t sockfd) {
+size_t socket_send_bytes(void *message, size_t size, socket_t sockfd) {
 	size_t bytes_sent = sendall(sockfd, message, size);
 	if(bytes_sent > 0)
 		;//log_inform("Sent %ld bytes", bytes_sent);
 	return bytes_sent;
 }
 
-static ssize_t recvall(socket_t sockfd, unsigned char *buf, size_t len) {
-	size_t bytes_received = 0;
+static ssize_t recvall(socket_t sockfd, void *buf, size_t len) {
+	size_t bytes_received = 0, bytes_packet;
 	while(bytes_received < len) {
-		ssize_t n = recv(sockfd, buf + bytes_received, len - bytes_received, 0);
-		if(n == -1) return n;
+		bytes_packet = len < BUFFER_PACKET ? len : BUFFER_PACKET;
+		ssize_t n = recv(sockfd, buf + bytes_packet, bytes_packet, 0);
+		if(n == -1) {
+			log_msg_error("socket | Ocurrio un error al recibir sobre el socket [ %d ], se recibio [ %d/%d ] %s", sockfd, bytes_received, len, strerror(errno));
+			return n;
+		}
 		if(n == 0) {
-			log_msg_error("La conexion sobre el socket [ %d ] se cerro", sockfd);
-			return 0;
+			log_msg_error("socket | La conexion sobre el socket [ %d ] se cerro", sockfd);
+			return n;
 		}
 		bytes_received += n;
-		if(len == BUFFER_CAPACITY && buf[bytes_received - 1] == '\0') {
-			break;
-		}
 	}
 	return bytes_received;
 }
 
-ssize_t socket_receive_string(char *message, socket_t sockfd) {
-	ssize_t bytes_received = recvall(sockfd, (unsigned char *) message, BUFFER_CAPACITY);
-	if(bytes_received > 0)
-		;//log_inform("Received string: \"%s\"", message);
-	return bytes_received;
-}
-
-ssize_t socket_receive_bytes(unsigned char *message, size_t size, socket_t sockfd) {
+ssize_t socket_receive_bytes(void *message, size_t size, socket_t sockfd) {
 	ssize_t bytes_received = recvall(sockfd, message, size);
 	if(bytes_received > 0)
 		;//log_inform("Received %ld bytes", bytes_received);
@@ -212,6 +202,6 @@ void socket_close(socket_t sockfd) {
 	}
 	int res = close(sockfd);
 	if(res != 1) {
-		log_msg_info("Socket [ %d ] cerrado", sockfd);
+		log_msg_info("socket | [ %d ] cerrado", sockfd);
 	}
 }
