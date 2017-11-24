@@ -20,10 +20,12 @@ void global_set_process(process_t process);
 
 process_t global_get_process();
 
-ssize_t global_readfile(const char *path, char *buffer);
+unsigned char *global_read_txtfile(const char *path, ssize_t *size);
+unsigned char *global_read_binfile(const char *path, ssize_t *size);
 
-bool global_createfile(const char *filepath);
+bool global_create_txtfile(const char *path, unsigned char *buffer, ssize_t len);
+bool global_create_binfile(const char *path, unsigned char *buffer, ssize_t len);
 
-void global_deletefile(const char *filepath);
+void global_delete_file(const char *filepath);
 
 #endif /* global_h */

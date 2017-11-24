@@ -25,7 +25,7 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, resultado_
 
 	//enviar programa Transformacion
 	char *arc_trans;
-	size = global_readfile(nombre_arch_transformador, arc_trans);
+	size = global_read_txtfile(nombre_arch_transformador, arc_trans);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, arc_trans);
 	if(!protocol_packet_send(sockWorker, &paquete))

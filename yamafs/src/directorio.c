@@ -18,14 +18,14 @@ bool directorio_existe_config(yamafs_t *config) {
 
 void directorio_borrar(yamafs_t *config) {
 	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
-	global_deletefile(path);
+	global_delete_file(path);
 	free(path);
 }
 
 void directorio_crear(yamafs_t *config) {
 	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
 
-	if(!global_createfile(path)) exit(EXIT_FAILURE);
+	if(!global_create_txtfile(path)) exit(EXIT_FAILURE);
 
 	dir_config = config_create(path);
 	int i;

@@ -55,10 +55,20 @@ int main (int argc, char **argv)  {
 
 	switch(p) {
 	case FS:
-		sockO = socket_init(NULL, puerto);
-		sockD = aceptar_cliente(sockO);
+		switch(opcion) {
+		case 0:
+			probar_leer_escribir_archivo_binario();
+			break;
+		case 1:
+			probar_leer_escribir_archivo_texto();
+			break;
+		case 100:
+			sockO = socket_init(NULL, puerto);
+			sockD = aceptar_cliente(sockO);
 
-		probar_yamafs(sockO, sockD, opcion);
+			probar_yamafs(sockO, sockD, opcion);
+			break;
+		}
 		break;
 	}
 

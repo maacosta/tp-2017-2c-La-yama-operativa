@@ -22,7 +22,7 @@ void atender_reduccion(unsigned char* payload) {
 
 	//enviar programa Reductor
 	char *arc_reduc;
-	size = global_readfile(nombre_arch_reductor, arc_reduc);
+	size = global_read_txtfile(nombre_arch_reductor, arc_reduc);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Reduccion, size);
 	paquete = protocol_get_packet(cabecera, arc_reduc);
 	if(!protocol_packet_send(sockWorker, &paquete))
@@ -138,7 +138,7 @@ void ejecutar_reduccion_global(socket_t sockYama, char *archivo_reductor) {
 
 	//enviar programa Reductor
 	char *arc_reduc;
-	size = global_readfile(archivo_reductor, arc_reduc);
+	size = global_read_txtfile(archivo_reductor, arc_reduc);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Reduccion_Global, size);
 	paquete = protocol_get_packet(cabecera, arc_reduc);
 	if(!protocol_packet_send(sockWorker, &paquete))

@@ -1,0 +1,15 @@
+[DEBUG] 23:48:11:473 test/(7836:7836): Socket [ 4 ] creado
+[DEBUG] 23:48:11:474 test/(7836:7836): Escuchando en puerto [ 5003 ]
+[DEBUG] 23:48:11:474 test/(7836:7836): Escuchando en el puerto [ 5003 ]
+[DEBUG] 23:48:31:199 test/(7836:7836): Cliente [ 127.0.0.1 ] conectado al socket [ 5 ]
+[DEBUG] 23:48:37:784 test/(7836:7836): receive_header p4o1s0
+[DEBUG] 23:48:37:784 test/(7836:7836): Handshake recibido de socket [ 5 ] exitoso
+[DEBUG] 23:48:38:762 test/(7836:7836): send_header p2o1s0
+[DEBUG] 23:48:38:763 test/(7836:7836): Handshake enviado a socket [ 5 ]
+[DEBUG] 23:48:51:145 test/(7836:7836): receive_header p4o15s9
+[DEBUG] 23:48:56:585 test/(7836:7836): serial_string_unpack nodo1|10
+[DEBUG] 23:49:13:926 test/(7836:7836): serial_string_pack 3
+[DEBUG] 23:49:34:765 test/(7836:7836): send_header p2o17s2
+[DEBUG] 23:51:33:776 test/(7973:7973): Socket [ 4 ] creado
+[DEBUG] 23:51:33:785 test/(7973:7973): Escuchando en puerto [ 5003 ]
+FIN

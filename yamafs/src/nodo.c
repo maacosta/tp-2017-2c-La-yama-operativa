@@ -21,14 +21,14 @@ bool nodo_existe_config(yamafs_t *config) {
 
 void nodo_borrar(yamafs_t *config) {
 	char *path = string_from_format("%s/nodos.dat", config->metadata_path);
-	global_deletefile(path);
+	global_delete_file(path);
 	free(path);
 }
 
 void nodo_crear(yamafs_t *config) {
 	char *path = string_from_format("%s/nodos.dat", config->metadata_path);
 
-	if(!global_createfile(path)) exit(EXIT_FAILURE);
+	if(!global_create_txtfile(path, NULL, 0)) exit(EXIT_FAILURE);
 
 	nodo_config = config_create(path);
 
