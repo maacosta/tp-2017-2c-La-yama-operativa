@@ -26,7 +26,7 @@ void atender_solicitudes() {
 	packet_t paquete;
 	size_t size;
 	int num_bloque;
-	void *bloque;
+	unsigned char *bloque;
 
 	//registrar
 	char buffer[NOMBRE_NODO_SIZE + BLOQUE_SIZE_E + 1];
@@ -51,9 +51,10 @@ void atender_solicitudes() {
 			bloque = memoria_obtener_bloque(num_bloque, BLOQUE_LEN);
 
 			cabecera = protocol_get_header(OP_DND_Obtener_Bloque, BLOQUE_LEN);
-			paquete = protocol_get_packet(cabecera, &bloque);
+			paquete = protocol_get_packet(cabecera, bloque);
 			if(!protocol_packet_send(sockFS, &paquete))
 				exit(EXIT_FAILURE);
+			free(bloque);
 			break;
 		case OP_DND_Almacenar_Bloque:
 			serial_string_unpack(packet.payload, "h", &num_bloque);

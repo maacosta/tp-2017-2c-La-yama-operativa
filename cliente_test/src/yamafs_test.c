@@ -4,7 +4,6 @@
 
 void probar_yamafs(socket_t sockO, socket_t sockD, int opcion) {
 	char buffer[1024*4];
-	char buffer2[1024*4];
 	packet_t packet;
 	header_t cabecera;
 	packet_t paquete;
@@ -33,7 +32,7 @@ void probar_yamafs(socket_t sockO, socket_t sockD, int opcion) {
 		if(!protocol_packet_send(sockD, &paquete))
 			return;
 
-		strcpy(buffer, "Esto es un texto de prueba desde el cliente_test");
+		strcpy(buffer, "Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. Esto es un texto de prueba desde el cliente_test. ");
 		cabecera = protocol_get_header(OP_DND_Almacenar_Bloque, string_length(&buffer) + 1);
 		paquete = protocol_get_packet(cabecera, &buffer);
 		if(!protocol_packet_send(sockD, &paquete))

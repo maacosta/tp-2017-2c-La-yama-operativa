@@ -150,11 +150,11 @@ socket_t socket_connect(const char *ip, const char *port) {
 	return socket_init(ip, port);
 }
 
-static size_t sendall(socket_t sockfd, void *buf, size_t len) {
+static size_t sendall(socket_t sockfd, unsigned char *buf, size_t len) {
 	size_t bytes_sent = 0, bytes_packet;
 	while(bytes_sent < len) {
-		bytes_packet = len < BUFFER_PACKET ? len : BUFFER_PACKET;
-		ssize_t n = send(sockfd, buf + bytes_packet, bytes_packet, 0);
+		bytes_packet = len - bytes_sent < BUFFER_PACKET ? len - bytes_sent : BUFFER_PACKET;
+		ssize_t n = send(sockfd, buf + bytes_sent, bytes_packet, 0);
 		if(n == -1) {
 			log_msg_error("socket | Error al enviar por el socket [ %d ], se envio [ %d/%d ] %s", sockfd, bytes_sent, len, strerror(errno));
 			return n;
@@ -164,18 +164,18 @@ static size_t sendall(socket_t sockfd, void *buf, size_t len) {
 	return bytes_sent;
 }
 
-size_t socket_send_bytes(void *message, size_t size, socket_t sockfd) {
+size_t socket_send_bytes(unsigned char *message, size_t size, socket_t sockfd) {
 	size_t bytes_sent = sendall(sockfd, message, size);
 	if(bytes_sent > 0)
 		;//log_inform("Sent %ld bytes", bytes_sent);
 	return bytes_sent;
 }
 
-static ssize_t recvall(socket_t sockfd, void *buf, size_t len) {
+static ssize_t recvall(socket_t sockfd, unsigned char *buf, size_t len) {
 	size_t bytes_received = 0, bytes_packet;
 	while(bytes_received < len) {
-		bytes_packet = len < BUFFER_PACKET ? len : BUFFER_PACKET;
-		ssize_t n = recv(sockfd, buf + bytes_packet, bytes_packet, 0);
+		bytes_packet = len - bytes_received < BUFFER_PACKET ? len - bytes_received : BUFFER_PACKET;
+		ssize_t n = recv(sockfd, buf + bytes_received, bytes_packet, 0);
 		if(n == -1) {
 			log_msg_error("socket | Ocurrio un error al recibir sobre el socket [ %d ], se recibio [ %d/%d ] %s", sockfd, bytes_received, len, strerror(errno));
 			return n;
@@ -189,7 +189,7 @@ static ssize_t recvall(socket_t sockfd, void *buf, size_t len) {
 	return bytes_received;
 }
 
-ssize_t socket_receive_bytes(void *message, size_t size, socket_t sockfd) {
+ssize_t socket_receive_bytes(unsigned char *message, size_t size, socket_t sockfd) {
 	ssize_t bytes_received = recvall(sockfd, message, size);
 	if(bytes_received > 0)
 		;//log_inform("Received %ld bytes", bytes_received);

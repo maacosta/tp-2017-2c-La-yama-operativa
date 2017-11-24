@@ -10,8 +10,8 @@
 
 void memoria_abrir(yamaDataNodo_t *config);
 int memoria_obtener_tamanio();
-void *memoria_obtener_bloque(int offset, int len);
-void memoria_almacenar_bloque(int offset, int len, void *bloque);
+unsigned char *memoria_obtener_bloque(int offset, int len);
+void memoria_almacenar_bloque(int offset, int len, unsigned char *bloque);
 void memoria_destruir();
 
 #endif /* SRC_MEMORIA_H_ */

@@ -67,7 +67,7 @@ socket_t socket_connect(const char *ip, const char *port);
  * @param sockfd Descriptor del socket.
  * @return Número de bytes enviados.
  */
-size_t socket_send_bytes(void *message, size_t size, socket_t sockfd);
+size_t socket_send_bytes(unsigned char *message, size_t size, socket_t sockfd);
 
 /**
  * Recibe datos binarios por una conexión abierta en un determinado socket.
@@ -76,7 +76,7 @@ size_t socket_send_bytes(void *message, size_t size, socket_t sockfd);
  * @param sockfd Descriptor del socket.
  * @return Número de bytes recibidos (-1 si hubo error).
  */
-ssize_t socket_receive_bytes(void *message, size_t size, socket_t sockfd);
+ssize_t socket_receive_bytes(unsigned char *message, size_t size, socket_t sockfd);
 
 /**
  * Cierra un socket abierto con socket_listen() o socket_connect().
