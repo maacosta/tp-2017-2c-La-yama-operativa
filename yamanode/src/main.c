@@ -25,7 +25,7 @@ void atender_solicitudes() {
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
-	int num_bloque;
+	int num_bloque, len;
 	unsigned char *bloque;
 
 	//registrar
@@ -45,12 +45,12 @@ void atender_solicitudes() {
 		}
 		switch(packet.header.operation) {
 		case OP_DND_Obtener_Bloque:
-			serial_string_unpack(packet.payload, "h", &num_bloque);
+			serial_string_unpack(packet.payload, "h h", &num_bloque, &len);
 			protocol_packet_free(&packet);
 
-			bloque = memoria_obtener_bloque(num_bloque, BLOQUE_LEN);
+			bloque = memoria_obtener_bloque(num_bloque, len);
 
-			cabecera = protocol_get_header(OP_DND_Obtener_Bloque, BLOQUE_LEN);
+			cabecera = protocol_get_header(OP_DND_Obtener_Bloque, len);
 			paquete = protocol_get_packet(cabecera, bloque);
 			if(!protocol_packet_send(sockFS, &paquete))
 				exit(EXIT_FAILURE);

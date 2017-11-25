@@ -57,16 +57,22 @@ int main (int argc, char **argv)  {
 	case FS:
 		switch(opcion) {
 		case 0:
-			probar_leer_escribir_archivo_binario();
+			yamafs_consola_leer_escribir_archivo_binario();
 			break;
 		case 1:
-			probar_leer_escribir_archivo_texto();
+			yamafs_consola_leer_escribir_archivo_texto();
 			break;
-		case 100:
+		case 2:
 			sockO = socket_init(NULL, puerto);
 			sockD = aceptar_cliente(sockO);
 
-			probar_yamafs(sockO, sockD, opcion);
+			yamafs_registrar_almacenar_obtener_txtbloque(sockO, sockD);
+			break;
+		case 3:
+			sockO = socket_init(NULL, puerto);
+			sockD = aceptar_cliente(sockO);
+
+			yamafs_registrar_almacenar_obtener_binbloque(sockO, sockD);
 			break;
 		}
 		break;

@@ -1,6 +1,6 @@
 #include "yamafs_consola_test.h"
 
-void probar_leer_escribir_archivo_binario() {
+void yamafs_consola_leer_escribir_archivo_binario() {
 	char *path = "./penguin_linux.jpeg";
 	char *path_copy = "./copy_penguin_linux.jpeg";
 
@@ -12,7 +12,7 @@ void probar_leer_escribir_archivo_binario() {
 	global_create_binfile(path_copy, buffer, size);
 }
 
-void probar_leer_escribir_archivo_texto() {
+void yamafs_consola_leer_escribir_archivo_texto() {
 	char *path = "./texto_prueba.txt";
 	char *path_copy = "./copy_texto_prueba.txt";
 
