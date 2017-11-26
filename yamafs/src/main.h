@@ -8,5 +8,6 @@
 #include "server.h"
 #include "directorio.h"
 #include "nodo.h"
+#include "bitmap.h"
 
 #endif /* MAIN_YAMAFS_H_ */

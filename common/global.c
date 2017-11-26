@@ -79,3 +79,25 @@ void global_delete_file(const char *filepath) {
 		}
 	}
 }
+
+bool global_get_dir_exist(const char *path) {
+	DIR* dir = opendir(path);
+	bool r = false;
+	if (dir) {
+	    /* Directory exists. */
+	    closedir(dir);
+	    r = true;
+	}
+	else if (ENOENT == errno) {
+	    /* Directory does not exist. */
+		return false;
+	}
+	else {
+		log_msg_error("global | Error al leer directorio [ %s ] %s", path, strerror(errno));
+	}
+	return r;
+}
+
+void global_create_dir(const char *path) {
+	mkdir(path, 0700);
+}

@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <dirent.h>
+#include <errno.h>
 #include "log.h"
 
 typedef enum {
@@ -27,5 +29,8 @@ bool global_create_txtfile(const char *path, unsigned char *buffer, ssize_t len)
 bool global_create_binfile(const char *path, unsigned char *buffer, ssize_t len);
 
 void global_delete_file(const char *filepath);
+
+bool global_get_dir_exist(const char *path);
+void global_create_dir(const char *path);
 
 #endif /* global_h */

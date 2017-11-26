@@ -59,7 +59,7 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 	else if(packet.header.process == DATANODE) {
 		switch(packet.header.operation) {
 		case OP_FSY_Registrar_Nodo:
-			resultado = nodos_registrar(&packet, cliente, &esperar_DNs, &estado_estable);
+			resultado = nodos_registrar(&packet, cliente, config, &esperar_DNs, &estado_estable);
 			break;
 		default:
 			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
