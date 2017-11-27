@@ -6,6 +6,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "configuration.h"
+#include "md5.h"
 
 void consola_iniciar();
 

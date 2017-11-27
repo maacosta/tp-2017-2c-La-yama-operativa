@@ -2,6 +2,23 @@
 
 bool fin_consola;
 
+static const char *md5sum(const char *chaine, size_t len) {
+	struct md5_ctx ctx;
+    unsigned char digest[16];
+    md5_init(&ctx);
+    ctx.size = len;
+    strcpy(ctx.buf, chaine);
+    md5_update(&ctx);
+    md5_final(digest, &ctx);
+
+    char md5string[33];
+    int i;
+    for(i = 0; i < 16; ++i)
+        sprintf(&md5string[i*2], "%02x", (unsigned int)digest[i]);
+
+    return string_duplicate(&md5string);
+}
+
 static void comando_ayuda(char **cmd) {
 	puts("Comandos:");
 	puts(">format");
@@ -94,6 +111,22 @@ static void comando_mkdir(char **cmd) {
 	else puts("Ocurrio un error indeterminado creando el directorio");
 }
 
+static void comando_md5(char **cmd) {
+	//obtener parametros
+	int i = 0;
+	void iterar(char *param) { i++; }
+	string_iterate_lines(cmd, (void*)iterar);
+	//validar parametros
+	if(i - 1 != 1) {
+		puts("La cantidad de parametros es incorrecta");
+		return;
+	}
+
+	char *path_dir = cmd[1];
+	unsigned char *cod = md5sum(cmd[1], string_length(cmd[1]));
+	printf("md5 %s\n", cod);
+}
+
 static void comando_salir(char **cmd) {
 	fin_consola = true;
 	puts("Fin del programa");
@@ -111,6 +144,7 @@ void consola_iniciar() {
 		else if(string_equals_ignore_case(cmd[0], "format")) comando_format(cmd);
 		else if(string_equals_ignore_case(cmd[0], "rm")) comando_rm(cmd);
 		else if(string_equals_ignore_case(cmd[0], "mkdir")) comando_mkdir(cmd);
+		else if(string_equals_ignore_case(cmd[0], "md5")) comando_md5(cmd);
 		else if(string_equals_ignore_case(cmd[0], "salir")) comando_salir(cmd);
 		free(comando);
 		string_iterate_lines(cmd, (void*) free);
