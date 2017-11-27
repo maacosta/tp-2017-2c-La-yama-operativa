@@ -111,6 +111,23 @@ static void comando_mkdir(char **cmd) {
 	else puts("Ocurrio un error indeterminado creando el directorio");
 }
 
+static void comando_cpfrom(char **cmd) {
+	//obtener parametros
+	int i = 0;
+	void iterar(char *param) { i++; }
+	string_iterate_lines(cmd, (void*)iterar);
+	//validar parametros
+	if(i - 1 != 1) {
+		puts("La cantidad de parametros es incorrecta");
+		return;
+	}
+
+	char *path_o = cmd[1];
+	char *path_d = cmd[2];
+
+
+}
+
 static void comando_md5(char **cmd) {
 	//obtener parametros
 	int i = 0;
@@ -144,6 +161,7 @@ void consola_iniciar() {
 		else if(string_equals_ignore_case(cmd[0], "format")) comando_format(cmd);
 		else if(string_equals_ignore_case(cmd[0], "rm")) comando_rm(cmd);
 		else if(string_equals_ignore_case(cmd[0], "mkdir")) comando_mkdir(cmd);
+		else if(string_equals_ignore_case(cmd[0], "cpfrom")) comando_cpfrom(cmd);
 		else if(string_equals_ignore_case(cmd[0], "md5")) comando_md5(cmd);
 		else if(string_equals_ignore_case(cmd[0], "salir")) comando_salir(cmd);
 		free(comando);
