@@ -20,7 +20,7 @@ socket_t conectar_con_yamafs(yamaDataNodo_t *config) {
 	return sock;
 }
 
-void atender_solicitudes() {
+void atender_solicitudes(yamaDataNodo_t *config) {
 	packet_t packet;
 	header_t cabecera;
 	packet_t paquete;
@@ -29,8 +29,8 @@ void atender_solicitudes() {
 	unsigned char *bloque;
 
 	//registrar
-	char buffer[NOMBRE_NODO_SIZE + BLOQUE_SIZE_E + 1];
-	size = serial_string_pack(&buffer, "s h", config->nombreNodo, memoria_obtener_tamanio() / BLOQUE_LEN);
+	char buffer[NOMBRE_NODO_SIZE + BLOQUE_SIZE_E + IP_SIZE + PUERTO_SIZE + 3];
+	size = serial_string_pack(&buffer, "s h s s", config->nombre_nodo, memoria_obtener_tamanio() / BLOQUE_LEN, config->ip_nodo, config->puerto_nodo);
 	cabecera = protocol_get_header(OP_FSY_Registrar_Nodo, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockFS, &paquete))
@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 	sockFS = conectar_con_yamafs(config);
 
 	if(sockFS != -1)
-		atender_solicitudes();
+		atender_solicitudes(config);
 
 	memoria_destruir();
 

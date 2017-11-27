@@ -17,11 +17,19 @@ static socket_t aceptar_cliente(socket_t server) {
 	}
 	//no está en estado-estable -> solo permitir conectar datanodes
 	if(!estado_estable && cabecera.process != DATANODE) {
+		log_msg_error("No se encuentra en estado-estable, por lo que solo se permiten DataNodes");
 		socket_close(cliente);
 		return -1;
 	}
-	//está en estado-estable -> permitir conectar yama, workers y datanodes?
-	if(estado_estable && cabecera.process != DATANODE && cabecera.process != YAMA && cabecera.process != WORKER) {
+	//está en estado-estable -> permitir conectar yama y datanodes
+	if(estado_estable && !yama_conectada && cabecera.process != DATANODE && cabecera.process != YAMA) {
+		log_msg_error("Se encuentra en estado-estable, por lo que solo se permiten DataNodes y YAMA");
+		socket_close(cliente);
+		return -1;
+	}
+	//está en estado-estable y yama conectado -> solo permitir conectar workers
+	if(estado_estable && yama_conectada && cabecera.process != WORKER) {
+		log_msg_error("Se encuentra en estado-estable y YAMA ya está conectado, por lo que solo se permiten Workers");
 		socket_close(cliente);
 		return -1;
 	}
@@ -48,7 +56,7 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 			//resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
 			break;
 		case OP_FSY_Obtener_Nodos:
-			;
+			resultado = nodos_informar(&packet, cliente);
 			break;
 		default:
 			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);

@@ -14,7 +14,7 @@ void validar_parametros(int argc, char **argv) {
 }
 
 bool tiene_estructura_de_datos() {
-	return directorio_existe_config(config);
+	return directorio_existe_config(config) && nodo_existe_config(config);
 }
 
 void borrar_estructura_de_datos() {
@@ -32,7 +32,7 @@ void crear_estructura_de_datos() {
 	nodo_crear(config);
 }
 
-void inicializar() {
+void inicializar_estructuras() {
 	esperar_DNs = false;
 	if(p_clean) {
 		//eliminar estado anterior
@@ -51,6 +51,7 @@ void inicializar() {
 
 void finalizar() {
 	directorio_destruir();
+	nodo_destruir();
 }
 
 int main(int argc, char **argv) {
@@ -59,7 +60,7 @@ int main(int argc, char **argv) {
 	config = config_leer("metadata");
 	log_init(config->log_file, config->log_name, false);
 
-	inicializar();
+	inicializar_estructuras();
 
 	server_crear_fs(config, esperar_DNs);
 	consola_iniciar(config);
