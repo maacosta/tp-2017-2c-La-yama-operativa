@@ -5,6 +5,7 @@ static bool procesar_bloque(int num_copia, bloque_t *b, char *nombre_nodo, int *
 	int bloques_total;
 	int bloques_libres;
 	nodo_obtener_rnd(nombre_nodo, &bloques_total, &bloques_libres);
+	log_msg_info("filesystem | Copia [ %d ] Nodo designado [ %s ]", num_copia, nombre_nodo);
 
 	//obtener detalle nodo
 	nodo_detalle_t *det_nodo = nodos_obtener_datos_nodo(nombre_nodo);
@@ -20,6 +21,7 @@ static bool procesar_bloque(int num_copia, bloque_t *b, char *nombre_nodo, int *
 		if(!bitmap_get(&bm, num_bloque)) break;
 	}
 	*numero_bloque = num_bloque;
+	log_msg_info("filesystem | Copia [ %d ] Bloque designado [ %d ]", num_copia, num_bloque);
 
 	//enviar bloque a datanode
 	header_t cabecera;
