@@ -20,7 +20,7 @@ void nodo_agregar(const char *nombre_nodo, int cant_bloques_totales, int cant_bl
 void nodo_actualizar(const char *nombre_nodo, int cant_bloques_libres);
 void nodo_quitar(const char *nombre_nodo);
 void nodo_obtener(const char *nombre_nodo, int *cant_bloques_totales, int *cant_bloques_libres);
-char *nodo_obtener_rnd(int *cant_bloques_totales, int *cant_bloques_libres);
+void nodo_obtener_rnd(char *nombre_nodo, int *cant_bloques_totales, int *cant_bloques_libres);
 
 int nodo_cantidad();
 char **nodo_lista_nombre();

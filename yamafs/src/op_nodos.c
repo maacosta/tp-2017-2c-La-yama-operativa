@@ -9,15 +9,15 @@ void nodos_inicializar() {
 bool nodos_registrar(packet_t *packet, socket_t sockDN, yamafs_t *config, bool *esperarDNs, bool *estadoEstable) {
 	nodo_detalle_t *nodo = malloc(sizeof(nodo_detalle_t));
 	nodo->socket = sockDN;
-	serial_string_unpack(packet->payload, "s h s s", nodo->nombre_nodo, nodo->cant_bloques, nodo->ip, nodo->puerto);
+	serial_string_unpack(packet->payload, "s h s s", &nodo->nombre_nodo, &nodo->cant_bloques, &nodo->ip, &nodo->puerto);
 	protocol_packet_free(packet);
 
 	log_msg_info("op_nodos | Registracion de nodo [ %s ]", nodo->nombre_nodo);
 
 	if(*esperarDNs) {
 		//solo acepta nodos que figuran en los nodos registrados anteriormente
-		if(nodo_existe(nodo->nombre_nodo)) {
-			nodo_notificar_existencia(nodo->nombre_nodo);
+		if(nodo_existe(&nodo->nombre_nodo)) {
+			nodo_notificar_existencia(&nodo->nombre_nodo);
 			list_add(lista_nodos, nodo);
 		}
 		else {
@@ -34,9 +34,9 @@ bool nodos_registrar(packet_t *packet, socket_t sockDN, yamafs_t *config, bool *
 		}
 	}
 	else {
-		nodo_agregar(nodo->nombre_nodo, nodo->cant_bloques, nodo->cant_bloques);
+		nodo_agregar(&nodo->nombre_nodo, nodo->cant_bloques, nodo->cant_bloques);
 		list_add(lista_nodos, nodo);
-		bitmap_t bm = bitmap_crear(config, nodo->nombre_nodo, nodo->cant_bloques);
+		bitmap_t bm = bitmap_crear(config, &nodo->nombre_nodo, nodo->cant_bloques);
 		bitmap_destruir(&bm);
 
 		//Con un solo nodo conectado ya es estado-estable

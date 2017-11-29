@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 
 	inicializar_estructuras();
 
-	//server_crear_fs(config, esperar_DNs);
+	server_crear_fs(config, esperar_DNs);
 	consola_iniciar(config);
 
 	finalizar();

@@ -104,5 +104,6 @@ void global_create_dir(const char *path) {
 }
 
 int global_rnd(int desde, int hasta) {
-	return desde + rand() * hasta / RAND_MAX;      // returns a pseudo-random integer between 0 and RAND_MAX
+	float f = (float)rand() / (float)RAND_MAX;
+	return desde + f * hasta;      // returns a pseudo-random integer between 0 and RAND_MAX
 }

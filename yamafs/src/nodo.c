@@ -54,7 +54,7 @@ void nodo_cargar(yamafs_t *config) {
 }
 
 bool nodo_existe(const char *nombre_nodo) {
-	bool existe;
+	bool existe = false;
 	char **nodos = config_get_array_value(nodo_config, KEY_NODOS);
 
 	void iterar(char *n) {
@@ -146,10 +146,10 @@ void nodo_agregar(const char *nombre_nodo, int cant_bloques_totales, int cant_bl
 	if (nodo_existe(nombre_nodo)) return;
 
 	char *key = string_from_format("%s%s", nombre_nodo, KEY_NODO_TOTAL);
-	config_set_value(nodo_config, key, cant_bloques_totales);
+	config_set_value(nodo_config, key, string_itoa(cant_bloques_totales));
 	free(key);
 	key = string_from_format("%s%s", nombre_nodo, KEY_NODO_LIBRE);
-	config_set_value(nodo_config, key, cant_bloques_libres);
+	config_set_value(nodo_config, key, string_itoa(cant_bloques_libres));
 	free(key);
 
 	agregar_nombre_nodo_en_config(nombre_nodo);
@@ -163,7 +163,7 @@ void nodo_actualizar(const char *nombre_nodo, int cant_bloques_libres) {
 
 	char *key = string_from_format("%s%s", nombre_nodo, KEY_NODO_LIBRE);
 	int libre = config_get_int_value(nodo_config, key);
-	config_set_value(nodo_config, key, cant_bloques_libres);
+	config_set_value(nodo_config, key, string_itoa(cant_bloques_libres));
 	free(key);
 
 	actualizar_bloques_en_config(0, cant_bloques_libres - libre);
@@ -198,9 +198,8 @@ void nodo_obtener(const char *nombre_nodo, int *cant_bloques_totales, int *cant_
 	free(key);
 }
 
-char *nodo_obtener_rnd(int *cant_bloques_totales, int *cant_bloques_libres) {
+void nodo_obtener_rnd(char *nombre_nodo, int *cant_bloques_totales, int *cant_bloques_libres) {
 	char **nodos = nodo_lista_nombre();
-	char *nombre_nodo;
 	int bloques_libres = nodo_obtener_bloques_libres();
 	int rnd = global_rnd(0, bloques_libres);
 
@@ -211,7 +210,7 @@ char *nodo_obtener_rnd(int *cant_bloques_totales, int *cant_bloques_libres) {
 		nodo_obtener(n, &total, &libres);
 		libres_acumulados += libres;
 		if(rnd < libres_acumulados && !encontrado) {
-			nombre_nodo = n;
+			strcpy(nombre_nodo, n);
 			*cant_bloques_totales = total;
 			*cant_bloques_libres = libres;
 			encontrado = true;
@@ -219,7 +218,6 @@ char *nodo_obtener_rnd(int *cant_bloques_totales, int *cant_bloques_libres) {
 	}
 	string_iterate_lines(nodos, (void *)iterar_nodos);
 	free(nodos);
-	return nombre_nodo;
 }
 
 int nodo_cantidad() {
