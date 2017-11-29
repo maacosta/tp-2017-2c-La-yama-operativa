@@ -60,12 +60,12 @@ int main(int argc, char **argv) {
 	config = config_leer("metadata");
 	log_init(config->log_file, config->log_name, false);
 
-	//inicializar_estructuras();
+	inicializar_estructuras();
 
 	//server_crear_fs(config, esperar_DNs);
 	consola_iniciar(config);
 
-	//finalizar();
+	finalizar();
 
 	config_liberar(config);
 

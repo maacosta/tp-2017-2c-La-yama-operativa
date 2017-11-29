@@ -120,9 +120,11 @@ void server_crear_fs(yamafs_t *config, bool esperarDNs) {
 	esperar_DNs = esperarDNs;
 	estado_estable = false;
 	yama_conectada = false;
+	nodos_inicializar();
 	thSRV = thread_create(server_crear, config);
 }
 
 void server_liberar() {
 	thread_join(thSRV);
+	nodos_destruir();
 }

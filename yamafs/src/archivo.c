@@ -12,7 +12,9 @@
 
 bool archivo_existe_config_nombre(yamafs_t *config, const char *nombre_archivo, int indice) {
 	char *path = string_from_format("%s/archivos/%d/%s", config->metadata_path, indice, nombre_archivo);
-	return access(path, F_OK) != -1;
+	bool r = access(path, F_OK) != -1;
+	free(path);
+	return r;
 }
 
 void archivo_borrar(yamafs_t *config, const char *nombre_archivo, int indice) {
@@ -21,8 +23,21 @@ void archivo_borrar(yamafs_t *config, const char *nombre_archivo, int indice) {
 	free(path);
 }
 
+static void crear_path_archivo(yamafs_t *config, int indice) {
+	char *path = string_from_format("%s/archivos", config->metadata_path);
+	if(!global_get_dir_exist(path))
+		global_create_dir(path);
+	free(path);
+	path = string_from_format("%s/archivos/%d", config->metadata_path, indice);
+	if(!global_get_dir_exist(path))
+		global_create_dir(path);
+	free(path);
+}
+
 t_config *archivo_cargar(yamafs_t *config, const char *nombre_archivo, int indice) {
 	char *path = string_from_format("%s/archivos/%d/%s", config->metadata_path, indice, nombre_archivo);
+
+	crear_path_archivo(config, indice);
 
 	if(!archivo_existe_config_nombre(config, nombre_archivo, indice))
 		if(!global_create_txtfile(path, NULL, 0))

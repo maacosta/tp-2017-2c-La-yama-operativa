@@ -12,6 +12,7 @@ bool global_get_file_exist(const char* path) {
 
 void global_set_process(process_t process) {
 	g_process = process;
+	srand(time(NULL));   // should only be called once
 }
 
 process_t global_get_process() {
@@ -100,4 +101,8 @@ bool global_get_dir_exist(const char *path) {
 
 void global_create_dir(const char *path) {
 	mkdir(path, 0700);
+}
+
+int global_rnd(int desde, int hasta) {
+	return desde + rand() * hasta / RAND_MAX;      // returns a pseudo-random integer between 0 and RAND_MAX
 }

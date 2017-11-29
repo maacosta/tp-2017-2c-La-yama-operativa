@@ -1,5 +1,6 @@
 #include "consola.h"
 
+yamafs_t* cfg;
 bool fin_consola;
 
 static const char *md5sum(const char *chaine, size_t len) {
@@ -33,7 +34,7 @@ static void comando_ayuda(char **cmd) {
 	puts(" Mostrar contenido del archivo como texto plano");
 	puts(">mkdir [path-dir]");
 	puts(" Crear directorio");
-	puts(">cpfrom [path-archivo-origen] [directorio-yama]");
+	puts(">cpfrom [-t | -b] [path-archivo-origen] [directorio-yama]");
 	puts(" Copiar un archivo local al yamafs");
 	puts(">cpto [path-archivo-yamafs] [directorio-filesystem]");
 	puts(" Copiar un archivo local desde el yamafs");
@@ -56,9 +57,7 @@ static void comando_format(char **cmd) {
 static void comando_rm(char **cmd) {
 	//contar parametros
 	int i = 0;
-	void iterar(char *param) {
-		i++;
-	}
+	void iterar(char *param) { i++; }
 	string_iterate_lines(cmd, (void*)iterar);
 	//validar parametros
 	if(i != 2 && i != 3 && i != 5) {
@@ -89,22 +88,16 @@ static void comando_rm(char **cmd) {
 }
 
 static void comando_mkdir(char **cmd) {
-	char *path_dir;
-	//obtener parametros
+	//contar parametros
 	int i = 0;
-	void iterar(char *param) {
-		if(i != 0) {
-			if(i == 1) path_dir = param;
-		}
-		i++;
-	}
+	void iterar(char *param) { i++; }
 	string_iterate_lines(cmd, (void*)iterar);
 	//validar parametros
 	if(i - 1 != 1) {
 		puts("La cantidad de parametros es incorrecta");
 		return;
 	}
-	int rdo = directorio_crear_dir(path_dir);
+	int rdo = directorio_crear_dir(cmd[1]);
 	if(rdo == 0) puts("Se creo el directorio");
 	else if(rdo == -1) puts("El path indicado debe empezar con /");
 	else if(rdo == -2) puts("No hay directorios disponibles");
@@ -117,15 +110,36 @@ static void comando_cpfrom(char **cmd) {
 	void iterar(char *param) { i++; }
 	string_iterate_lines(cmd, (void*)iterar);
 	//validar parametros
-	if(i - 1 != 1) {
+	if(i - 1 != 3) {
 		puts("La cantidad de parametros es incorrecta");
 		return;
 	}
+	bool es_txt;
+	if(string_equals_ignore_case(cmd[1], "-b"))
+		es_txt = false;
+	else if(string_equals_ignore_case(cmd[1], "-t"))
+		es_txt = true;
+	else {
+		puts("Debe indicar el tipo de archivo: -t texto; -b binario");
+		return;
+	}
+	if(!global_get_file_exist(cmd[2])) {
+		puts("El archivo origen no existe");
+		return;
+	}
+	char archivo[50];
+	int indice = directorio_obtener_indice(cmd[3], &archivo);
+	if(indice == -1) {
+		puts("El directorio destino no existe");
+		return;
+	}
 
-	char *path_o = cmd[1];
-	char *path_d = cmd[2];
+	if(!filesystem_cpfrom(cmd[2], &archivo, indice, es_txt, cfg)) {
+		puts("No se pudo copiar el archivo a yama (ver el log de errores)");
+		return;
+	}
 
-
+	puts("El archivo se grabo en yama con exito");
 }
 
 static void comando_md5(char **cmd) {
@@ -149,7 +163,8 @@ static void comando_salir(char **cmd) {
 	puts("Fin del programa");
 }
 
-void consola_iniciar() {
+void consola_iniciar(yamafs_t* config) {
+	cfg = config;
 	fin_consola = false;
 	char *comando;
 	char **cmd;

@@ -41,6 +41,9 @@ void nodo_cargar(yamafs_t *config) {
 	char *path = string_from_format("%s/nodos.dat", config->metadata_path);
 	nodo_config = config_create(path);
 
+	nodos_lista = list_create();
+	nodos_registrados_lista = list_create();
+
 	char **nodos = config_get_array_value(nodo_config, KEY_NODOS);
 
 	void iterar(char *n) {
@@ -184,6 +187,41 @@ void nodo_quitar(const char *nombre_nodo) {
 	config_save(nodo_config);
 }
 
+void nodo_obtener(const char *nombre_nodo, int *cant_bloques_totales, int *cant_bloques_libres) {
+	if (!nodo_existe(nombre_nodo)) return;
+
+	char *key = string_from_format("%s%s", nombre_nodo, KEY_NODO_TOTAL);
+	*cant_bloques_totales = config_get_int_value(nodo_config, key);
+	free(key);
+	key = string_from_format("%s%s", nombre_nodo, KEY_NODO_LIBRE);
+	*cant_bloques_libres = config_get_int_value(nodo_config, key);
+	free(key);
+}
+
+char *nodo_obtener_rnd(int *cant_bloques_totales, int *cant_bloques_libres) {
+	char **nodos = nodo_lista_nombre();
+	char *nombre_nodo;
+	int bloques_libres = nodo_obtener_bloques_libres();
+	int rnd = global_rnd(0, bloques_libres);
+
+	int libres_acumulados = 0;
+	bool encontrado = false;
+	void iterar_nodos(char *n) {
+		int total, libres;
+		nodo_obtener(n, &total, &libres);
+		libres_acumulados += libres;
+		if(rnd < libres_acumulados && !encontrado) {
+			nombre_nodo = n;
+			*cant_bloques_totales = total;
+			*cant_bloques_libres = libres;
+			encontrado = true;
+		}
+	}
+	string_iterate_lines(nodos, (void *)iterar_nodos);
+	free(nodos);
+	return nombre_nodo;
+}
+
 int nodo_cantidad() {
 	int c = 0;
 	char **nodos = config_get_array_value(nodo_config, KEY_NODOS);
@@ -195,6 +233,14 @@ int nodo_cantidad() {
 
 char **nodo_lista_nombre() {
 	return config_get_array_value(nodo_config, KEY_NODOS);
+}
+
+int nodo_obtener_bloques_libres() {
+	return config_get_int_value(nodo_config, KEY_LIBRE);
+}
+
+int nodo_obtener_bloques_totales() {
+	return config_get_int_value(nodo_config, KEY_TAMANIO);
 }
 
 void nodo_destruir() {

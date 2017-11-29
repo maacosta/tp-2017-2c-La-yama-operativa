@@ -2,14 +2,17 @@
 
 t_list *lista_nodos;
 
+void nodos_inicializar() {
+	lista_nodos = list_create();
+}
+
 bool nodos_registrar(packet_t *packet, socket_t sockDN, yamafs_t *config, bool *esperarDNs, bool *estadoEstable) {
 	nodo_detalle_t *nodo = malloc(sizeof(nodo_detalle_t));
+	nodo->socket = sockDN;
 	serial_string_unpack(packet->payload, "s h s s", nodo->nombre_nodo, nodo->cant_bloques, nodo->ip, nodo->puerto);
 	protocol_packet_free(packet);
 
 	log_msg_info("op_nodos | Registracion de nodo [ %s ]", nodo->nombre_nodo);
-
-	if(lista_nodos == NULL) lista_nodos = list_create();
 
 	if(*esperarDNs) {
 		//solo acepta nodos que figuran en los nodos registrados anteriormente
@@ -73,4 +76,15 @@ bool nodos_informar(packet_t *packet, socket_t sockYAMA) {
 	list_iterate(lista_nodos, (void *)iterar);
 
 	return resultado;
+}
+
+nodo_detalle_t *nodos_obtener_datos_nodo(const char *nombre_nodo) {
+	bool find(nodo_detalle_t *n) {
+		return string_equals_ignore_case(n->nombre_nodo, nombre_nodo);
+	}
+	return list_find(lista_nodos, (void *)find);
+}
+
+void nodos_destruir() {
+	list_destroy_and_destroy_elements(lista_nodos, (void *)free);
 }

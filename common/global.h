@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <dirent.h>
 #include <errno.h>
+#include <time.h>
 #include "log.h"
 
 typedef enum {
@@ -32,5 +33,7 @@ void global_delete_file(const char *filepath);
 
 bool global_get_dir_exist(const char *path);
 void global_create_dir(const char *path);
+
+int global_rnd(int desde, int hasta);
 
 #endif /* global_h */

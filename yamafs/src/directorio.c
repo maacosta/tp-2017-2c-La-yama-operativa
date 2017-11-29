@@ -190,6 +190,41 @@ int directorio_borrar_dir(char *dir_path) {
 	return rdo;
 }
 
+int directorio_obtener_indice(const char *path, char *archivo) {
+	if(!string_starts_with(path, "/")) return -1;
+
+	char **dirs = string_split(path, "/");
+
+	int c = 0;
+	void iterar_contar(char *d) { c++; }
+	string_iterate_lines(dirs, (void *)iterar_contar);
+
+	bool pathConArchivo = false;
+	if(string_contains(path, ".")) {
+		pathConArchivo = true;
+		strcpy(archivo, dirs[c - 1]);
+	}
+
+	directorio_t *directorio = buscar_por_nombre_y_padre(ROOT_NAME, -1);
+	int padre = directorio->index;
+	bool existeDirectorio = true;
+	int rdo = 0;
+	void iterar(char *d) {
+		if(existeDirectorio && (!pathConArchivo || (pathConArchivo && c > 1))) {
+			//buscar nodo
+			directorio = buscar_por_nombre_y_padre(d, padre);
+			//obtener padre o flag
+			if(directorio != NULL) padre = directorio->index;
+			else existeDirectorio = false;
+		}
+		c--;
+	}
+	string_iterate_lines(dirs, (void*)iterar);
+
+	if(!existeDirectorio) return -1;
+	return directorio->index;
+}
+
 void directorio_destruir() {
 	config_destroy(dir_config);
 }
