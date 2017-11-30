@@ -2,6 +2,8 @@
 
 yamafs_t* cfg;
 bool fin_consola;
+pthread_t thSRV;
+extern char comando_global[80];
 
 static const char *md5sum(const char *chaine, size_t len) {
 	struct md5_ctx ctx;
@@ -35,9 +37,9 @@ static void comando_ayuda(char **cmd) {
 	puts(">mkdir [path-dir]");
 	puts(" Crear directorio");
 	puts(">cpfrom [-t | -b] [path-archivo-origen] [directorio-yama]");
-	puts(" Copiar un archivo local al yamafs");
+	puts(" Copiar un archivo local al yamafs (directorio-yama debe empezar con /)");
 	puts(">cpto [path-archivo-yamafs] [directorio-filesystem]");
-	puts(" Copiar un archivo local desde el yamafs");
+	puts(" Copiar un archivo local desde el yamafs (directorio-yama debe empezar con /)");
 	puts(">cpblock [path-archivo] [nro-bloque] [id-nodo]");
 	puts(" Crear una copia de un bloque de un archivo en el nodo dado");
 	puts(">md5 [path-archivo-yamafs]");
@@ -134,12 +136,37 @@ static void comando_cpfrom(char **cmd) {
 		return;
 	}
 
-	if(!filesystem_cpfrom(cmd[2], &archivo, indice, es_txt, cfg)) {
-		puts("No se pudo copiar el archivo a yama (ver el log de errores)");
+	pthread_kill(thSRV, SIGRTMIN + 1);
+	puts("Se envio a procesar la solicitud");
+}
+
+static void comando_cpto(char **cmd) {
+	//obtener parametros
+	int i = 0;
+	void iterar(char *param) { i++; }
+	string_iterate_lines(cmd, (void*)iterar);
+	//validar parametros
+	if(i - 1 != 2) {
+		puts("La cantidad de parametros es incorrecta");
+		return;
+	}
+	if(global_get_file_exist(cmd[2])) {
+		puts("Ya existe el archivo en el destino especificado");
+		return;
+	}
+	char archivo[50];
+	int indice = directorio_obtener_indice(cmd[1], &archivo);
+	if(indice == -1) {
+		puts("El directorio origen no existe");
+		return;
+	}
+	if(!archivo_existe_config_nombre(cfg, &archivo, indice)) {
+		puts("El archivo origen no existe");
 		return;
 	}
 
-	puts("El archivo se grabo en yama con exito");
+	pthread_kill(thSRV, SIGRTMIN + 2);
+	puts("Se envio a procesar la solicitud");
 }
 
 static void comando_md5(char **cmd) {
@@ -159,12 +186,14 @@ static void comando_md5(char **cmd) {
 }
 
 static void comando_salir(char **cmd) {
+	pthread_kill(thSRV, SIGRTMIN);
 	fin_consola = true;
-	puts("Fin del programa");
+	puts("Finalizando programa...");
 }
 
-void consola_iniciar(yamafs_t* config) {
+void consola_iniciar(yamafs_t* config, pthread_t th_srv) {
 	cfg = config;
+	thSRV = th_srv;
 	fin_consola = false;
 	char *comando;
 	char **cmd;
@@ -172,11 +201,13 @@ void consola_iniciar(yamafs_t* config) {
 	do {
 		comando = readline(">");
 		cmd = string_split(comando, " ");
+		strcpy(&comando_global, comando);
 		if(string_equals_ignore_case(cmd[0], "ayuda")) comando_ayuda(cmd);
 		else if(string_equals_ignore_case(cmd[0], "format")) comando_format(cmd);
 		else if(string_equals_ignore_case(cmd[0], "rm")) comando_rm(cmd);
 		else if(string_equals_ignore_case(cmd[0], "mkdir")) comando_mkdir(cmd);
 		else if(string_equals_ignore_case(cmd[0], "cpfrom")) comando_cpfrom(cmd);
+		else if(string_equals_ignore_case(cmd[0], "cpto")) comando_cpto(cmd);
 		else if(string_equals_ignore_case(cmd[0], "md5")) comando_md5(cmd);
 		else if(string_equals_ignore_case(cmd[0], "salir")) comando_salir(cmd);
 		free(comando);

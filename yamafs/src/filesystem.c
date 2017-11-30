@@ -45,6 +45,8 @@ static bool procesar_bloque(int num_copia, bloque_t *b, char *nombre_nodo, int *
 	//actualizar bitmap de bloques usados
 	bitmap_set(&bm, num_bloque);
 	bitmap_destruir(&bm);
+
+	return true;
 }
 
 bool filesystem_cpfrom(const char *path_origen, const char *nom_archivo, int indice, bool es_txt, yamafs_t *config) {
@@ -66,6 +68,7 @@ bool filesystem_cpfrom(const char *path_origen, const char *nom_archivo, int ind
 			if(stream[j] == '\n' || j - i >= TAMANIO_BLOQUE - 1 || j == size - 1) {
 				if(j - i >= TAMANIO_BLOQUE - 1 || j == size - 1) {
 					if(k == i && j != size - 1) z = TAMANIO_BLOQUE;
+					else if(j == size - 1) z = size - i;
 					else z = k - i + 1;
 
 					bloque = malloc(sizeof(bloque_t));
@@ -115,8 +118,14 @@ bool filesystem_cpfrom(const char *path_origen, const char *nom_archivo, int ind
 		char nombre_nodo_0[NOMBRE_NODO_SIZE];
 		char nombre_nodo_1[NOMBRE_NODO_SIZE];
 		int num_bloque_0, num_bloque_1;
-		procesar_bloque(0, b, &nombre_nodo_0, &num_bloque_0, config);
-		procesar_bloque(1, b, &nombre_nodo_1, &num_bloque_1, config);
+		if(!procesar_bloque(0, b, &nombre_nodo_0, &num_bloque_0, config)) {
+			hay_error = true;
+			return;
+		}
+		if(!procesar_bloque(1, b, &nombre_nodo_1, &num_bloque_1, config)) {
+			hay_error = true;
+			return;
+		}
 
 		//agregar archivo al sistema con detalle de bloques
 		archivo_definir_copias(arc_config, indice_bloque, b->size, &nombre_nodo_0, num_bloque_0, &nombre_nodo_1, num_bloque_1);
@@ -131,6 +140,81 @@ bool filesystem_cpfrom(const char *path_origen, const char *nom_archivo, int ind
 		//borrar config de archivo
 		archivo_borrar(config, nom_archivo, indice);
 	}
+
+	return true;
+}
+
+static bool obtener_bloque(int num_bloque, int tamanio_bloque, socket_t sock, unsigned char *bloque) {
+	packet_t packet;
+	header_t cabecera;
+	packet_t paquete;
+	size_t size;
+
+	char buffer[BLOQUE_SIZE_E + BLOQUE_SIZE_E + 1];
+	size = serial_string_pack(&buffer, "h h", num_bloque, tamanio_bloque);
+	cabecera = protocol_get_header(OP_DND_Obtener_Bloque, size);
+	paquete = protocol_get_packet(cabecera, &buffer);
+	if(!protocol_packet_send(sock, &paquete))
+		return false;
+	packet = protocol_packet_receive(sock);
+	if(packet.header.operation == OP_ERROR) {
+		socket_close(sock);
+		return false;
+	}
+	memcpy(bloque, packet.payload, tamanio_bloque);
+	protocol_packet_free(&packet);
+	return true;
+}
+
+bool filesystem_cpto(const char *path_destino, const char *nom_archivo, int indice, yamafs_t *config) {
+	t_config *arc_config = archivo_cargar(config, nom_archivo, indice);
+	int cant_bloques;
+	int tamanio;
+	bool es_txt;
+	archivo_recuperar_cabecera(arc_config, &cant_bloques, &tamanio, &es_txt);
+
+	unsigned char *stream = malloc(tamanio);
+
+	nodo_detalle_t *det_nodo;
+	int i, j = 0;
+	int bytes, bloque_0, bloque_1;
+	char nombre_nodo_0[NOMBRE_NODO_SIZE], nombre_nodo_1[NOMBRE_NODO_SIZE];
+	unsigned char bloque[BLOQUE_LEN];
+	bool hay_error = false;
+	for(i = 0; i < cant_bloques; i++) {
+		archivo_recuperar_copias(arc_config, i, &bytes, &nombre_nodo_0, &bloque_0, &nombre_nodo_1, &bloque_1);
+
+		//intenta recuperar con copia bloque 0
+		det_nodo = nodos_obtener_datos_nodo(&nombre_nodo_0);
+		if(obtener_bloque(bloque_0, bytes, det_nodo->socket, &bloque)) {
+			memcpy(stream + j, &bloque, bytes);
+			j += bytes;
+			continue;
+		}
+		log_msg_error("filesystem | Fallo copia [ 0 ] del nodo [ %s ]", nombre_nodo_0);
+
+		//intenta recuperar con copia bloque 0
+		det_nodo = nodos_obtener_datos_nodo(&nombre_nodo_1);
+		if(obtener_bloque(bloque_1, bytes, det_nodo->socket, &bloque)) {
+			memcpy(stream + j, &bloque, bytes);
+			j += bytes;
+			continue;
+		}
+		log_msg_error("filesystem | Fallo copia [ 1 ] del nodo [ %s ]", nombre_nodo_1);
+
+		//ambas copias fallaron
+		hay_error = true;
+		break;
+	}
+
+	if(!hay_error) {
+		log_msg_info("filesystem | Creacion de archivo [ %s ]", path_destino);
+		if(es_txt) global_create_txtfile(path_destino, stream, tamanio);
+		else global_create_binfile(path_destino, stream, tamanio);
+	}
+
+	free(stream);
+	archivo_destruir(arc_config);
 
 	return true;
 }

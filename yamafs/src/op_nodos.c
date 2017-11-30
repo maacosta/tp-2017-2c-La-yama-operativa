@@ -31,6 +31,7 @@ bool nodos_registrar(packet_t *packet, socket_t sockDN, yamafs_t *config, bool *
 		if(nodo_se_notificaron_todos_los_registrados()) {
 			*esperarDNs = false;
 			*estadoEstable = true;
+			log_msg_info("op_nodos | Se notificaron todos los nodos del estado anterior: pasa a estado-estable y no se esperan mas datanodes");
 		}
 	}
 	else {
@@ -41,6 +42,7 @@ bool nodos_registrar(packet_t *packet, socket_t sockDN, yamafs_t *config, bool *
 
 		//Con un solo nodo conectado ya es estado-estable
 		*estadoEstable = true;
+		log_msg_info("op_nodos | Se registro al menos un nodo, pasa a estado-estable");
 	}
 	return true;
 }

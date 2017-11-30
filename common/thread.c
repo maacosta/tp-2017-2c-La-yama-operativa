@@ -35,7 +35,7 @@ void thread_kill(thread_t thread) {
 int thread_join(thread_t thread) {
 	int *resultado;
 	pthread_join(thread, &resultado);
-	return *resultado;
+	return resultado == NULL ? 0 : *resultado;
 }
 
 mutex_t thread_mutex() {

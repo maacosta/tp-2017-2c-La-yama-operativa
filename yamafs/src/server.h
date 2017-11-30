@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <limits.h>
+#include <sys/signalfd.h>
 #include <commons/collections/list.h>
 #include "../../common/global.h"
 #include "../../common/socket.h"
@@ -11,7 +12,7 @@
 #include "configuration.h"
 #include "op_nodos.h"
 
-void server_crear_fs(yamafs_t *config, bool esperarDNs);
+pthread_t server_crear_fs(yamafs_t *config, bool esperarDNs);
 
 void server_liberar();
 

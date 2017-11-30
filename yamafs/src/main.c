@@ -3,6 +3,7 @@
 yamafs_t *config;
 bool p_clean;
 bool esperar_DNs;
+char comando_global[80];
 
 void validar_parametros(int argc, char **argv) {
 	if(!(argc == 1 || (argc == 2 && string_equals_ignore_case(argv[1], "--clean")))) {
@@ -10,7 +11,6 @@ void validar_parametros(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 	p_clean = argc == 2;
-	log_msg_info("Parametros %s", argv[1]);
 }
 
 bool tiene_estructura_de_datos() {
@@ -62,12 +62,14 @@ int main(int argc, char **argv) {
 
 	inicializar_estructuras();
 
-	server_crear_fs(config, esperar_DNs);
-	consola_iniciar(config);
+	pthread_t th_srv = server_crear_fs(config, esperar_DNs);
+	consola_iniciar(config, th_srv);
 
+	server_liberar();
 	finalizar();
-
 	config_liberar(config);
+
+	printf("Finalizado con exito");
 
 	return EXIT_SUCCESS;
 }

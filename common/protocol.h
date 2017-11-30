@@ -7,6 +7,7 @@
 #include "serial_string.h"
 #include "socket.h"
 
+#define BLOQUE_LEN 1048576 //1024*1024 = 1 mb
 #define NUMERO_JOB_SIZE 3
 #define RESPUESTA_SIZE 2
 #define NOMBRE_NODO_SIZE 20

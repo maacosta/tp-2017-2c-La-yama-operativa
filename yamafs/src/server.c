@@ -5,6 +5,7 @@ socket_t sockSRV;
 static bool estado_estable;
 static bool yama_conectada;
 static bool esperar_DNs;
+extern char comando_global[80];
 
 static socket_t aceptar_cliente(socket_t server) {
 	socket_t cliente = socket_accept(server);
@@ -88,19 +89,93 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 	return resultado;
 }
 
+static void comando_cpfrom(char **cmd, yamafs_t *config) {
+	bool es_txt;
+	if(string_equals_ignore_case(cmd[1], "-b"))
+		es_txt = false;
+	else if(string_equals_ignore_case(cmd[1], "-t"))
+		es_txt = true;
+
+	char archivo[50];
+	int indice = directorio_obtener_indice(cmd[3], &archivo);
+
+	if(!filesystem_cpfrom(cmd[2], &archivo, indice, es_txt, config)) {
+		puts("No se pudo copiar el archivo a yama (ver el log de errores)");
+		return;
+	}
+
+	puts("   #server @cpfrom: El archivo se grabo en yama con exito");
+}
+
+static void comando_cpto(char **cmd, yamafs_t *config) {
+	char archivo[50];
+	int indice = directorio_obtener_indice(cmd[1], &archivo);
+
+	if(!filesystem_cpto(cmd[2], &archivo, indice, config)) {
+		puts("   #server @cpto: No se pudo copiar el archivo a yama (ver el log de errores)");
+		return;
+	}
+
+	puts("   #server @cpto: El archivo se recupero de yama con exito");
+}
+
+static void atender_senial(int sfd, yamafs_t *config, bool *ejecutar) {
+	log_msg_info("SE ATIENDE SENIAL");
+	struct signalfd_siginfo si;
+	ssize_t res;
+	res = read (sfd, &si, sizeof(si));
+	if (res < 0) {
+		log_msg_error("No se pudo leer el fd de la senial %s", strerror(errno));
+		return;
+	}
+	if (res != sizeof(si)) {
+		log_msg_error("No se pudo leer la cantidad correcto del fd de la senial");
+		return;
+	}
+
+	char **cmd = string_split(&comando_global, "");
+	if (si.ssi_signo == SIGRTMIN) { //SALIR
+		*ejecutar = false;
+	}
+	else if (si.ssi_signo == SIGRTMIN + 1) { //CPFROM
+		comando_cpfrom(cmd, config);
+	}
+	else if (si.ssi_signo == SIGRTMIN + 2) { //CPTO
+		comando_cpto(cmd, config);
+	}
+	else {
+		log_msg_error("Se envio una senial no controlada");
+	}
+	free(cmd);
+}
+
+static int setup_signalfd(void) {
+    sigset_t sigs;
+    sigemptyset(&sigs);
+    sigaddset(&sigs, SIGRTMIN);
+    sigprocmask(SIG_BLOCK, &sigs, NULL);
+    return signalfd(-1, &sigs, SFD_NONBLOCK | SFD_CLOEXEC);
+}
+
 void server_crear(yamafs_t *config) {
 	socket_t cli_i;
 	fd_set read_fdset;
 
 	sockSRV = socket_listen(config->puerto);
 
-	while(true) {
+	int sfd = setup_signalfd();
+	socket_fdset(sfd);
+
+	bool ejecutar = true;
+	while(ejecutar) {
 		if(!socket_select(&read_fdset)) break;
 
 		for(cli_i = 0; cli_i <= socket_fdmax(); cli_i++) {
 			if(!socket_fdisset(cli_i, &read_fdset)) continue;
 
-			if(cli_i == sockSRV) {
+			if(socket_fdisset(sfd, &read_fdset))
+				atender_senial(sfd, config, &ejecutar);
+			else if(cli_i == sockSRV) {
 				socket_t cli_sock = aceptar_cliente(sockSRV);
 				if(cli_sock == -1) continue;
 				socket_fdset(cli_sock);
@@ -116,7 +191,7 @@ void server_crear(yamafs_t *config) {
 	socket_close(sockSRV);
 }
 
-void server_crear_fs(yamafs_t *config, bool esperarDNs) {
+pthread_t server_crear_fs(yamafs_t *config, bool esperarDNs) {
 	esperar_DNs = esperarDNs;
 	estado_estable = false;
 	yama_conectada = false;

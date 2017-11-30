@@ -17,9 +17,11 @@ bool directorio_existe_config(yamafs_t *config);
 void directorio_borrar(yamafs_t *config);
 void directorio_crear(yamafs_t *config);
 void directorio_cargar(yamafs_t *config);
+
 int directorio_crear_dir(char *dir_path);
 int directorio_borrar_dir(char *dir_path);
 int directorio_obtener_indice(const char *path, char *archivo);
+
 void directorio_destruir();
 
 #endif /* SRC_DIRECTORIO_H_ */

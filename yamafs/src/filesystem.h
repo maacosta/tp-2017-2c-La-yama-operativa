@@ -16,5 +16,6 @@ typedef struct {
 } bloque_t;
 
 bool filesystem_cpfrom(const char *path_origen, const char *nom_archivo, int indice, bool es_txt, yamafs_t *config);
+bool filesystem_cpto(const char *path_destino, const char *nom_archivo, int indice, yamafs_t *config);
 
 #endif /* SRC_FILESYSTEM_H_ */

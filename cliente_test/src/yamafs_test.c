@@ -1,6 +1,5 @@
 #include "yamafs_test.h"
 
-#define BLOQUE_LEN 1048576 //1024*1024
 packet_t packet;
 header_t cabecera;
 packet_t paquete;
