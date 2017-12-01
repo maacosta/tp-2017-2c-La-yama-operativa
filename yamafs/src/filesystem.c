@@ -84,10 +84,11 @@ bool filesystem_cpfrom(const char *path_origen, const char *nom_archivo, int ind
 		}
 	}
 	else {
+		ssize_t s = size;
 		do {
 			bloque = malloc(sizeof(bloque_t));
-			len = size > TAMANIO_BLOQUE ? TAMANIO_BLOQUE : size;
-			size -= len;
+			len = s > TAMANIO_BLOQUE ? TAMANIO_BLOQUE : s;
+			s -= len;
 
 			memcpy(&bloque->stream, stream + len_packet, len);
 			bloque->size = len;
@@ -95,7 +96,7 @@ bool filesystem_cpfrom(const char *path_origen, const char *nom_archivo, int ind
 			len_packet += len;
 
 			list_add(bloques, bloque);
-		} while(size > 0);
+		} while(s > 0);
 	}
 
 	//validar cantidad de bloques libres
@@ -150,7 +151,7 @@ static bool obtener_bloque(int num_bloque, int tamanio_bloque, socket_t sock, un
 	packet_t paquete;
 	size_t size;
 
-	char buffer[BLOQUE_SIZE_E + BLOQUE_SIZE_E + 1];
+	char buffer[BLOQUE_SIZE_E + BYTES_OCUPADOS_SIZE_E + 1];
 	size = serial_string_pack(&buffer, "h h", num_bloque, tamanio_bloque);
 	cabecera = protocol_get_header(OP_DND_Obtener_Bloque, size);
 	paquete = protocol_get_packet(cabecera, &buffer);

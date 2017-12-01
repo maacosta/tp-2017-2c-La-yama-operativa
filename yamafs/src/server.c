@@ -133,7 +133,7 @@ static void atender_senial(int sfd, yamafs_t *config, bool *ejecutar) {
 		return;
 	}
 
-	char **cmd = string_split(&comando_global, "");
+	char **cmd = string_split(&comando_global, " ");
 	if (si.ssi_signo == SIGRTMIN) { //SALIR
 		*ejecutar = false;
 	}
@@ -146,6 +146,7 @@ static void atender_senial(int sfd, yamafs_t *config, bool *ejecutar) {
 	else {
 		log_msg_error("Se envio una senial no controlada");
 	}
+	putchar('>');
 	free(cmd);
 }
 
@@ -153,6 +154,8 @@ static int setup_signalfd(void) {
     sigset_t sigs;
     sigemptyset(&sigs);
     sigaddset(&sigs, SIGRTMIN);
+    sigaddset(&sigs, SIGRTMIN + 1);
+    sigaddset(&sigs, SIGRTMIN + 2);
     sigprocmask(SIG_BLOCK, &sigs, NULL);
     return signalfd(-1, &sigs, SFD_NONBLOCK | SFD_CLOEXEC);
 }
@@ -189,6 +192,7 @@ void server_crear(yamafs_t *config) {
 		}
 	}
 	socket_close(sockSRV);
+	pthread_exit(0);
 }
 
 pthread_t server_crear_fs(yamafs_t *config, bool esperarDNs) {
@@ -197,6 +201,7 @@ pthread_t server_crear_fs(yamafs_t *config, bool esperarDNs) {
 	yama_conectada = false;
 	nodos_inicializar();
 	thSRV = thread_create(server_crear, config);
+	return thSRV;
 }
 
 void server_liberar() {

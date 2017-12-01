@@ -62,7 +62,7 @@ socket_t socket_init(const char *ip, const char *port) {
 		}
 
 		if(ip == NULL) {
-			log_msg_info("socket | Escuchando en puerto [ %s ]", port);
+			log_msg_info("socket | Enlazado con puerto [ %s ]", port);
 		} else {
 			log_msg_info("socket | Conectado a [ %s:%s ]", ip, port);
 		}
