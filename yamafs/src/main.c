@@ -18,16 +18,19 @@ bool tiene_estructura_de_datos() {
 }
 
 void borrar_estructura_de_datos() {
+	log_msg_info("Borrado de estructuras de dato, formateo del filesystem");
 	directorio_borrar(config);
 	nodo_borrar(config);
 }
 
 void cargar_estructura_de_datos() {
+	log_msg_info("Recuperacion del estado anterior, restauracion del filesystem");
 	directorio_cargar(config);
 	nodo_cargar(config);
 }
 
 void crear_estructura_de_datos() {
+	log_msg_info("Inicializacion de estructuras de dato, creacion del filesystem");
 	directorio_crear(config);
 	nodo_crear(config);
 }
