@@ -38,7 +38,7 @@ bool reduccion_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_ma
 		}
 		//detalle concatenar archivos temporales
 		tmp = string_duplicate(detalle->nombre_archivo_temporal);
-		string_append(&tmp, ";");
+		string_append(&tmp, TOKEN_SEPARADOR_ARCHIVOS);
 		string_append(&tmp, estado_master->archivo_temporal);
 		strcpy(detalle->nombre_archivo_temporal, tmp);
 		free(tmp);

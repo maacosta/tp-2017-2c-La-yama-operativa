@@ -1,10 +1,3 @@
-/*
- * server.h
- *
- *  Created on: 3/10/2017
- *      Author: utnso
- */
-
 #ifndef SRC_SERVER_H_
 #define SRC_SERVER_H_
 
@@ -14,24 +7,10 @@
 #include "../../common/socket.h"
 #include "../../common/protocol.h"
 #include "configuration.h"
-#include "operations.h"
+#include "operaciones.h"
 
-/*typedef struct{
-	int job;
-	int master;
-	char nodo[50];
-	int bloque;
-	char etapa;					//transformacion, reduccion local, reduccion global, almacenamiento final
-	char archivo_temporal[50];	//el path es temp/nombre_aleatorio hasta 255
-	char estado;				//en proceso, finalizado ok, error
-} estado_master_t;*/
-
-socket_t create_server();
-
-socket_t escuchar_master();
+void server_crear(yamaworker_t *config);
 
 void server_liberar();
-
-
 
 #endif /* SRC_SERVER_H_ */

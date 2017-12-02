@@ -14,8 +14,8 @@ typedef struct {
     bool encargado;
 } reduccion_global_t;
 
-void ejecutar_reduccion(socket_t sockYama, char *archivo_reductor);
+void ejecutar_reduccion(socket_t sockYama, bool es_txt_reductor, char *archivo_reductor);
 
-void ejecutar_reduccion_global(socket_t sockYama, char *archivo_reductor);
+void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *archivo_reductor);
 
 #endif /* SRC_OP_REDUCCION_H_ */

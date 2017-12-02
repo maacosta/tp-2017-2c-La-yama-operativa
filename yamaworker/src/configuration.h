@@ -8,12 +8,15 @@
 #include "../../common/global.h"
 
 // Configuracion
-typedef struct{
+typedef struct {
 	char* log_file;
 	char* log_name;
-	char* puerto;
-	char* fs_ip;
-	char* fs_puerto;
+	char* nombre_nodo;
+	char* puerto_nodo;
+	char* yamafs_ip;
+	char* yamafs_puerto;
+	char* path_tmp;
+	char* path_databin;
 } yamaworker_t;
 
 yamaworker_t *config_leer(const char* path);

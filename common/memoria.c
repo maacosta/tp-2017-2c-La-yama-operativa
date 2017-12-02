@@ -3,15 +3,15 @@
 int fd_databin;
 struct stat sb_databin;
 
-void memoria_abrir(yamaDataNodo_t *config) {
-	fd_databin = open(config->path_databin, O_RDWR);
+void memoria_abrir(const char *path_databin, bool es_solo_lectura) {
+	fd_databin = open(path_databin, es_solo_lectura ? O_RDWR : O_RDONLY);
 	if (fd_databin == -1) {
-		log_msg_error("memoria | No se pudo abrir el archivo [ %s ] %s", config->path_databin, strerror(errno));
+		log_msg_error("memoria | No se pudo abrir el archivo [ %s ] %s", path_databin, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 	// To obtain file size
 	if (fstat(fd_databin, &sb_databin) == -1){
-		log_msg_error("memoria | No se pudo recuperar el tamanio del archivo [ %s ] %s", config->path_databin, strerror(errno));
+		log_msg_error("memoria | No se pudo recuperar el tamanio del archivo [ %s ] %s", path_databin, strerror(errno));
 		close(fd_databin);
 		exit(EXIT_FAILURE);
 	}

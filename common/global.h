@@ -36,4 +36,6 @@ void global_create_dir(const char *path);
 
 int global_rnd(int desde, int hasta);
 
+void global_nombre_aleatorio(char *dest, size_t length);
+
 #endif /* global_h */

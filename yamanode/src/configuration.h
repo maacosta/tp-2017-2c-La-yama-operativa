@@ -8,15 +8,14 @@
 #include "../../common/global.h"
 
 typedef struct{
-	char* yamafs_ip;
-	char* yamafs_puerto;
+	char* log_file;
+	char* log_name;
 	char* nombre_nodo;
 	char* ip_nodo;
 	char* puerto_nodo;
+	char* yamafs_ip;
+	char* yamafs_puerto;
 	char* path_databin;
-	char* log_file;
-	char* log_name;
-
 } yamaDataNodo_t;
 
 yamaDataNodo_t  *config_leer(const char* path);

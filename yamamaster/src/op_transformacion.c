@@ -1,44 +1,48 @@
 #include "op_transformacion.h"
 
 static socket_t sock;
-static char *nombre_arch_transformador;
+bool es_txt_archivo_transformador;
+char *nombre_archivo_transformador;
 
-bool procesar_transformacion(unsigned char* payload, int *numero_job, resultado_t *resultado_estado) {
-    int num_job;
-	char nombre_nodo[NOMBRE_NODO_SIZE];
-    char ip[IP_SIZE];
-    char puerto[PUERTO_SIZE];
-    int bloque;
-    int bytes_ocupados;
-    char nombre_archivo_tmp[NOMBRE_ARCHIVO_TMP];
-
-	serial_string_unpack(payload, "h s s s h h s", &num_job, &nombre_nodo, &ip, &puerto, &bloque, &bytes_ocupados, &nombre_archivo_tmp);
-	free(payload);
-
-	*numero_job = num_job;
-
-	socket_t sockWorker = conectar_con_worker(ip, puerto);
-
+bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *resultado_estado) {
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
 
-	//enviar programa Transformacion
-	char *arc_trans;
-	size = global_read_txtfile(nombre_arch_transformador, arc_trans);
-	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size);
-	paquete = protocol_get_packet(cabecera, arc_trans);
-	if(!protocol_packet_send(sockWorker, &paquete))
+    int num_job;
+	char nombre_nodo[NOMBRE_NODO_SIZE];
+    char ip[IP_SIZE];
+    char puerto[PUERTO_SIZE];
+    int num_bloque;
+    int bytes_ocupados;
+    char nombre_archivo_tmp[NOMBRE_ARCHIVO_TMP];
+	serial_string_unpack((char *)payload, "h s s s h h s", &num_job, &nombre_nodo, &ip, &puerto, &num_bloque, &bytes_ocupados, &nombre_archivo_tmp);
+	free(payload);
+
+	*numero_job = num_job;
+
+	socket_t sockWorker = conectar_con_worker(&ip, &puerto);
+	if(sockWorker == -1)
 		return false;
-	free(arc_trans);
 
 	//enviar Iniciar Transformacion
-	char buffer[BLOQUE_SIZE_E + BYTES_OCUPADOS_SIZE_E + NOMBRE_ARCHIVO_TMP + 2];
-	size = serial_string_pack(&buffer, "h h s", bloque, bytes_ocupados, &nombre_archivo_tmp);
+	char buffer[BLOQUE_SIZE_E + BYTES_OCUPADOS_SIZE_E + NOMBRE_ARCHIVO_TMP + RESPUESTA_SIZE + 3];
+	size = serial_string_pack(&buffer, "h h s h", num_bloque, bytes_ocupados, &nombre_archivo_tmp, es_txt_archivo_transformador);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockWorker, &paquete))
 		return false;
+
+	//enviar programa Transformacion
+	ssize_t size_arc;
+	unsigned char *buffer_arc;
+	if(es_txt_archivo_transformador) buffer_arc = global_read_txtfile(nombre_archivo_transformador, &size_arc);
+	else buffer_arc = global_read_binfile(nombre_archivo_transformador, &size_arc);
+	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size_arc);
+	paquete = protocol_get_packet(cabecera, buffer_arc);
+	if(!protocol_packet_send(sockWorker, &paquete))
+		return false;
+	free(buffer_arc);
 
 	//recibir Iniciar Transformacion
 	paquete = protocol_packet_receive(sockWorker);
@@ -99,17 +103,18 @@ void atender_transformacion(unsigned char* payload) {
 	pthread_exit(r);
 }
 
-void ejecutar_transformacion(socket_t sockYama, char *archivo_transformador, char *archivo_origen) {
+void ejecutar_transformacion(socket_t sockYama, bool es_txt_transformador, char *arc_transformador, char *arc_origen) {
 	sock = sockYama;
-	nombre_arch_transformador = archivo_transformador;
-	char nombre_archivo[NOMBRE_ARCHIVO];
+	es_txt_archivo_transformador = es_txt_transformador;
+	nombre_archivo_transformador = arc_transformador;
 
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
 
 	//enviar Solicitar Transformacion
-	size = serial_string_pack(&nombre_archivo, "s", archivo_origen);
+	char nombre_archivo[NOMBRE_ARCHIVO];
+	size = serial_string_pack(&nombre_archivo, "s", arc_origen);
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, &nombre_archivo);
 	if(!protocol_packet_send(sock, &paquete))

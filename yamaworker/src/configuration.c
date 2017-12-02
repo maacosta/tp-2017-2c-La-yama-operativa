@@ -10,11 +10,14 @@ yamaworker_t *config_leer(const char* path) {
 	c = config_create((char *)path);
 	yamaworker_t *config = malloc(sizeof(yamaworker_t));
 
-	config->log_file = config_get_string_value(c, "LOG_FILE");
-	config->log_name = config_get_string_value(c, "LOG_NAME");
-	config->puerto = config_get_string_value(c, "PUERTO_WORKER");
-	config->fs_ip = config_get_string_value(c, "FS_IP");
-	config->fs_puerto = config_get_string_value(c, "FS_PUERTO");
+	config->log_file = config_get_string_value(c, "LOG_FILE_WORKER");
+	config->log_name = config_get_string_value(c, "LOG_NAME_WORKER");
+	config->nombre_nodo = config_get_string_value(c, "NOMBRE_NODO");
+	config->puerto_nodo = config_get_string_value(c, "PUERTO_NODO");
+	config->yamafs_ip = config_get_string_value(c, "YAMAFS_IP");
+	config->yamafs_puerto = config_get_string_value(c, "YAMAFS_PUERTO");
+	config->path_tmp = config_get_string_value(c, "PATH_TMP");
+	config->path_databin = config_get_string_value(c, "PATH_DATABIN");
 
 	return config;
 }

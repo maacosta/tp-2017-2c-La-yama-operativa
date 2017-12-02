@@ -1,6 +1,5 @@
 #include "main.h"
 
-#define BLOQUE_LEN 1048576 //1024*1024
 yamaDataNodo_t *config;
 socket_t sockFS;
 
@@ -78,7 +77,7 @@ int main(int argc, char **argv) {
 	config = config_leer("metadata");
 	log_init(config->log_file, config->log_name, true);
 
-	memoria_abrir(config);
+	memoria_abrir(config, false);
 
 	sockFS = conectar_con_yamafs(config);
 

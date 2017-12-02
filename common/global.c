@@ -107,3 +107,15 @@ int global_rnd(int desde, int hasta) {
 	float f = (float)rand() / (float)RAND_MAX;
 	return desde + f * hasta;      // returns a pseudo-random integer between 0 and RAND_MAX
 }
+
+void global_nombre_aleatorio(char *dest, size_t length) {
+    char charset[] = "0123456789"
+                     "abcdefghijklmnopqrstuvwxyz"
+                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    while (length-- > 0) {
+        size_t index = (double) rand() / RAND_MAX * (sizeof charset - 1);
+        *dest++ = charset[index];
+    }
+    *dest = '\0';
+}

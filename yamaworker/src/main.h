@@ -7,8 +7,9 @@
 #include "../../common/protocol.h"
 #include "configuration.h"
 #include <string.h>
+
+#include "operaciones.h"
 #include "server.h"
-#include "operations.h"
 
 
 #endif /* MAIN_YAMAWORKER_H_ */

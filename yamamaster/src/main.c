@@ -3,18 +3,45 @@
 unsigned char buffer[4096];
 yamamaster_t *config;
 socket_t sockYAMA;
-char *p_transformador, *p_reductor, *p_origen, *p_destino;
+char *p_tipo_transformador, *p_transformador, *p_tipo_reductor, *p_reductor, *p_origen, *p_destino;
+bool p_txt_transformador, p_txt_reductor;
+
+static void imprimir_formato_parametros() {
+	puts("El formato aceptado son los siguientes:");
+	puts(">yamamaster [-t | -b] [path-transformador] [-t | -b] [path-reductor] [path-origen-txt] [path-destino-txt]");
+	puts(">yamamaster [path-transformador-txt] [path-reductor-txt] [path-origen-txt] [path-destino-txt]");
+	log_msg_error("Error en formato de parametros");
+}
 
 void validar_parametros(int argc, char **argv) {
-	if(argc != 5) {
-		log_msg_error("Debe indicar 4 parametros: transformador reductor origen destino");
+	if(argc != 7 && argc != 5) {
+		imprimir_formato_parametros();
 		exit(EXIT_FAILURE);
 	}
-	p_transformador = argv[1];
-	p_reductor = argv[2];
-	p_origen = argv[3];
-	p_destino = argv[4];
-	log_msg_info("Parametros %s %s %s %s", p_transformador, p_reductor, p_origen, p_destino);
+	if(argc == 7) {
+		p_tipo_transformador = argv[1];
+		p_transformador = argv[2];
+		p_tipo_reductor = argv[3];
+		p_reductor = argv[4];
+		p_origen = argv[5];
+		p_destino = argv[6];
+	}
+	else if(argc == 5) {
+		p_tipo_transformador = string_duplicate("-t");
+		p_transformador = argv[1];
+		p_tipo_reductor = string_duplicate("-t");
+		p_reductor = argv[2];
+		p_origen = argv[3];
+		p_destino = argv[4];
+	}
+	if(!string_equals_ignore_case(p_tipo_transformador, "-t") && !string_equals_ignore_case(p_tipo_transformador, "-b")
+		&& !string_equals_ignore_case(p_tipo_reductor, "-t") && !string_equals_ignore_case(p_tipo_reductor, "-b")) {
+		imprimir_formato_parametros();
+		exit(EXIT_FAILURE);
+	}
+	p_txt_transformador = string_equals_ignore_case(p_tipo_transformador, "-t");
+	p_txt_reductor = string_equals_ignore_case(p_tipo_reductor, "-t");
+	log_msg_info("Parametros %s %s %s %s %s %s", p_tipo_transformador, p_transformador, p_tipo_reductor, p_reductor, p_origen, p_destino);
 }
 
 socket_t conectar_con_yama(yamamaster_t *config) {
@@ -57,11 +84,11 @@ int main(int argc, char **argv) {
 
 	sockYAMA = conectar_con_yama(config);
 
-	ejecutar_transformacion(sockYAMA, p_transformador, p_origen);
+	ejecutar_transformacion(sockYAMA, p_txt_transformador, p_transformador, p_origen);
 
-	ejecutar_reduccion(sockYAMA, p_reductor);
+	ejecutar_reduccion(sockYAMA, p_txt_reductor, p_reductor);
 
-	ejecutar_reduccion_global(sockYAMA, p_reductor);
+	ejecutar_reduccion_global(sockYAMA, p_txt_reductor, p_reductor);
 
 	ejecutar_almacenamiento(sockYAMA, p_destino);
 
