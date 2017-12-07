@@ -31,6 +31,8 @@ void cargar_estructura_de_datos() {
 
 void crear_estructura_de_datos() {
 	log_msg_info("Inicializacion de estructuras de dato, creacion del filesystem");
+	if(!global_get_dir_exist(config->metadata_path))
+		global_create_dir(config->metadata_path);
 	directorio_crear(config);
 	nodo_crear(config);
 }

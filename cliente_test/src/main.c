@@ -76,6 +76,14 @@ int main (int argc, char **argv)  {
 			break;
 		}
 		break;
+	case MASTER:
+		switch(opcion) {
+		case 0:
+			sockD = conectar_con(ip, puerto);
+
+			worker_enviar_transformacion(sockD);
+		}
+		break;
 	}
 
 }

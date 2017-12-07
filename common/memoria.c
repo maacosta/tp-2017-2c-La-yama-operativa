@@ -31,7 +31,7 @@ unsigned char *memoria_obtener_bloque(int offset, int len) {
     unsigned char *bloque = malloc(len * sizeof(unsigned char));
     memcpy(bloque, addr, len);
     munmap(addr, len);
-    log_msg_info("memoria | Se lee offset [ %d ] len [ %d ]", offset, len);
+    log_msg_info("memoria | Se lee offset [ %d ] offsetmap [ %d ] len [ %d ]", offset, offsetmmap, len);
     return bloque;
 }
 

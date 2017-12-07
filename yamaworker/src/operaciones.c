@@ -18,11 +18,11 @@ bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config)
 	log_msg_info("operaciones | Etapa Transformacion: archivo [ %d ]", sockMaster);
 
 	//recibir informacion de bloque y nombre archivo final temporal
-	int num_bloque;
-	int bytes_ocupados;
+	int num_bloque, bytes_ocupados, i_es_txt;
 	char nombre_archivo_final_tmp[NOMBRE_ARCHIVO_TMP];
 	bool es_txt;
-	serial_string_unpack(packet->payload, "h h s h", &num_bloque, &bytes_ocupados, &nombre_archivo_final_tmp, &es_txt);
+	serial_string_unpack(packet->payload, "h h s h", &num_bloque, &bytes_ocupados, &nombre_archivo_final_tmp, &i_es_txt);
+	es_txt = (bool)i_es_txt;
 	protocol_packet_free(packet);
 	//escribir bloque a disco con un nombre temporal
 	char nombre_bloque_tmp[NOMBRE_ARCHIVO_TMP];
@@ -39,18 +39,26 @@ bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config)
 	}
 	char nombre_script_tmp[NOMBRE_ARCHIVO_TMP];
 	global_nombre_aleatorio(&nombre_script_tmp, 8);
-	guardar_archivo_tmp(config->path_tmp, &nombre_script_tmp, &paquete.payload, paquete.header.size, es_txt);
+	guardar_archivo_tmp(config->path_tmp, &nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
 	protocol_packet_free(&paquete);
 
 	//ejecutar transformacion
-	char *path_bloque = string_from_format("%s/%s", config->path_tmp, nombre_bloque_tmp);
-	char *path_script = string_from_format("%s/%s", config->path_tmp, nombre_script_tmp);
+	char *path_bloque = string_from_format("./%s/%s", config->path_tmp, nombre_bloque_tmp);
+	char *path_script = string_from_format("./%s/%s", config->path_tmp, nombre_script_tmp);
+	char *path_resultado = string_from_format("./%s/%s", config->path_tmp, nombre_archivo_final_tmp);
 
 	//ejecutar archivo temporal ya guardado localmente
-	char *cmd = string_from_format("cat %s | %s | sort > %s", path_bloque, path_script, &nombre_archivo_final_tmp);
+	char *cmd = string_from_format("cat %s | %s | sort > %s", path_bloque, path_script, path_resultado);
+	log_msg_info("operaciones | Comando a ejecutar [ %s ]", cmd);
+
+	chmod(path_script, S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH);
+
+	system(cmd);/*
 	char *argv[] = { NULL };
 	char *envp[] = { NULL };
-	execve(cmd, argv, envp);
+	if(execve(cmd, argv, envp) == -1) {
+		log_msg_error("operaciones | No se pudo ejecutar el comando [ %s ]", strerror(errno));
+	}*/
 	free(cmd);
 
 	return (EXIT_SUCCESS);

@@ -66,10 +66,12 @@ static bool create_file(const char *path, unsigned char *buffer, ssize_t len, bo
 }
 
 bool global_create_txtfile(const char *path, unsigned char *buffer, ssize_t len) {
+	log_msg_info("global | Se escribe archivo TXT [ %s ] len [ %d ]", path, len);
 	return create_file(path, buffer, len, true);
 }
 
 bool global_create_binfile(const char *path, unsigned char *buffer, ssize_t len) {
+	log_msg_info("global | Se escribe archivo BIN [ %s ] len [ %d ]", path, len);
 	return create_file(path, buffer, len, false);
 }
 

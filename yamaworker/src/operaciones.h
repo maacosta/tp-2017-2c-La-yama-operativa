@@ -3,6 +3,7 @@
 
 #include <sys/wait.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 #include <commons/collections/list.h>
 #include "../../common/global.h"
 #include "../../common/socket.h"
