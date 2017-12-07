@@ -33,3 +33,37 @@ void worker_enviar_transformacion(socket_t sockWorker) {
 
 	printf("Transformacion enviada y procesada con exito");
 }
+
+void worker_enviar_reduccion(socket_t sockWorker) {
+	header_t cabecera;
+	packet_t paquete;
+	size_t size;
+
+	//enviar Iniciar Transformacion
+	char buffer[1024];
+	size = serial_string_pack(&buffer, "s s h", "arc_res_transformador.txt", "arc_res_reduccion.txt", true);
+	cabecera = protocol_get_header(OP_WRK_Iniciar_Reduccion, size);
+	paquete = protocol_get_packet(cabecera, &buffer);
+	if(!protocol_packet_send(sockWorker, &paquete))
+		return;
+
+	//enviar programa Transformacion
+	ssize_t size_arc;
+	unsigned char *buffer_arc;
+	buffer_arc = global_read_txtfile("./reductor.py", &size_arc);
+	cabecera = protocol_get_header(OP_WRK_Iniciar_Reduccion, size_arc);
+	paquete = protocol_get_packet(cabecera, buffer_arc);
+	if(!protocol_packet_send(sockWorker, &paquete))
+		return;
+	free(buffer_arc);
+
+	//recibir Iniciar Transformacion
+	paquete = protocol_packet_receive(sockWorker);
+	if(paquete.header.operation == OP_ERROR)
+		return;
+	resultado_t resultado;
+	serial_string_unpack(paquete.payload, "h", &resultado);
+	protocol_packet_free(&paquete);
+
+	printf("Reduccion enviada y procesada con exito");
+}

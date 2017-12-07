@@ -53,7 +53,8 @@ bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config)
 
 	chmod(path_script, S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH);
 
-	system(cmd);/*
+	system(cmd);
+	/*
 	char *argv[] = { NULL };
 	char *envp[] = { NULL };
 	if(execve(cmd, argv, envp) == -1) {
@@ -74,14 +75,15 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 	//recibir informacion de archivos reducidos y nombre archivo final temporal
 	char nombre_archivos_tmp[NOMBRE_ARCHIVO_TMP*10];
 	char nombre_archivo_reduccion_local[NOMBRE_ARCHIVO_TMP];
-	bool es_txt;
-	serial_string_unpack(packet->payload, "s s h", &nombre_archivos_tmp, &nombre_archivo_reduccion_local, &es_txt);
+	bool i_es_txt;
+	serial_string_unpack(packet->payload, "s s h", &nombre_archivos_tmp, &nombre_archivo_reduccion_local, &i_es_txt);
+	bool es_txt = (bool)i_es_txt;
 	protocol_packet_free(packet);
 	//escribir archivos reducidos unificado a disco con un nombre temporal
 	char *cmd = string_duplicate("cat ");
 	char **arc_reduccion_lista = string_split(&nombre_archivos_tmp, TOKEN_SEPARADOR_ARCHIVOS);
 	void iterar(char *a) {
-		char *path = string_from_format("%s/%s", config->path_tmp, a);
+		char *path = string_from_format("./%s/%s", config->path_tmp, a);
 		string_append_with_format(&cmd, "%s ", path);
 		free(path);
 	}
@@ -94,16 +96,27 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 	}
 	char nombre_script_tmp[NOMBRE_ARCHIVO_TMP];
 	global_nombre_aleatorio(&nombre_script_tmp, 8);
-	guardar_archivo_tmp(config->path_tmp, &nombre_script_tmp, &paquete.payload, paquete.header.size, es_txt);
+	guardar_archivo_tmp(config->path_tmp, &nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
 	protocol_packet_free(&paquete);
 
+	char *path_script = string_from_format("./%s/%s", config->path_tmp, nombre_script_tmp);
+	char *path_resultado = string_from_format("./%s/%s", config->path_tmp, nombre_archivo_reduccion_local);
+
 	//ejecutar transformacion
-	string_append_with_format(&cmd, "| %s > %s", &nombre_script_tmp, &nombre_archivo_reduccion_local);
+	string_append_with_format(&cmd, "| %s > %s", path_script, path_resultado);
+	log_msg_info("operaciones | Comando a ejecutar [ %s ]", cmd);
 
 	//ejecutar archivo temporal ya guardado localmente
+	chmod(path_script, S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH);
+
+	free(path_script);
+
+	system(cmd);
+	/*
 	char *argv[] = { NULL };
 	char *envp[] = { NULL };
 	execve(cmd, argv, envp);
+	*/
 	free(cmd);
 
 	return (EXIT_SUCCESS);

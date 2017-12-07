@@ -82,6 +82,12 @@ int main (int argc, char **argv)  {
 			sockD = conectar_con(ip, puerto);
 
 			worker_enviar_transformacion(sockD);
+			break;
+		case 1:
+			sockD = conectar_con(ip, puerto);
+
+			worker_enviar_reduccion(sockD);
+			break;
 		}
 		break;
 	}
