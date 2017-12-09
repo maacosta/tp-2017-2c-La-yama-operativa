@@ -30,19 +30,25 @@ void ejecutar_almacenamiento(socket_t sockYama, char *archivo_destino) {
 	protocol_packet_free(&paquete);
 
 	socket_t sockWorker = conectar_con_worker(ip, puerto);
+	if(sockWorker == -1)
+		exit(EXIT_FAILURE);
 
 	//enviar Iniciar Almacenamiento Final
 	char buffer[NOMBRE_ARCHIVO_TMP + NOMBRE_ARCHIVO_TMP + 1];
 	size = serial_string_pack(&buffer, "s s", &nombre_archivo_tmp, archivo_destino);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Almacenamiento_Final, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
-	if(!protocol_packet_send(sockWorker, &paquete))
+	if(!protocol_packet_send(sockWorker, &paquete)) {
+		socket_close(sockWorker);
 		exit(EXIT_FAILURE);
+	}
 
 	//recibir Iniciar Almacenamiento Final
 	paquete = protocol_packet_receive(sockWorker);
-	if(paquete.header.operation == OP_ERROR)
+	if(paquete.header.operation == OP_ERROR) {
+		socket_close(sockWorker);
 		exit(EXIT_FAILURE);
+	}
 	resultado_t respuesta;
 	serial_string_unpack(paquete.payload, "h", &respuesta);
 	protocol_packet_free(&paquete);

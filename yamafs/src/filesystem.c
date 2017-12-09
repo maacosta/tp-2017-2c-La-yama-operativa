@@ -49,13 +49,7 @@ static bool procesar_bloque(int num_copia, bloque_t *b, char *nombre_nodo, int *
 	return true;
 }
 
-bool filesystem_cpfrom(const char *path_origen, const char *nom_archivo, int indice, bool es_txt, yamafs_t *config) {
-	//obtener streaming de datos
-	unsigned char *stream;
-	ssize_t size;
-	if(es_txt) stream = global_read_txtfile(path_origen, &size);
-	else stream = global_read_binfile(path_origen, &size);
-
+static bool filesystem_copiar_a_yamafs(unsigned char *stream, ssize_t size, const char *nom_archivo, int indice, bool es_txt, yamafs_t *config) {
 	//obtener bloques de streaming
 	t_list *bloques = list_create();
 	bloque_t *bloque;
@@ -164,6 +158,52 @@ static bool obtener_bloque(int num_bloque, int tamanio_bloque, socket_t sock, un
 	}
 	memcpy(bloque, packet.payload, tamanio_bloque);
 	protocol_packet_free(&packet);
+	return true;
+}
+
+bool filesystem_cpfrom(const char *path_origen, const char *nom_archivo, int indice, bool es_txt, yamafs_t *config) {
+	//obtener streaming de datos
+	unsigned char *stream;
+	ssize_t size;
+	if(es_txt) stream = global_read_txtfile(path_origen, &size);
+	else stream = global_read_binfile(path_origen, &size);
+
+	return filesystem_copiar_a_yamafs(stream, size, nom_archivo, indice, es_txt, config);
+}
+
+bool filesystem_almacenamiento_final(packet_t *packet, socket_t sockWorker, yamafs_t *config) {
+	header_t cabecera;
+	packet_t paquete;
+	size_t size;
+
+	log_msg_info("filesystem | Almacenar archivo final: socket [ %d ]", sockWorker);
+
+	//recibir nombre archivo final temporal y nombre yamafs
+	char nombre_archivo_yamafs_tmp[NOMBRE_ARCHIVO_TMP];
+	serial_string_unpack(packet->payload, "s", &nombre_archivo_yamafs_tmp);
+	protocol_packet_free(packet);
+
+	//recibir archivo temporal y escribirlo a disco con un nombre temporal
+	paquete = protocol_packet_receive(sockWorker);
+	if(paquete.header.operation == OP_ERROR) {
+		return false;
+	}
+
+	char archivo[NOMBRE_ARCHIVO];
+	int indice = directorio_obtener_indice(&nombre_archivo_yamafs_tmp, &archivo);
+
+	bool r = filesystem_copiar_a_yamafs(paquete.payload, paquete.header.size, &archivo, indice, true, config);
+	protocol_packet_free(&paquete);
+
+	//responder a worker
+	char buffer[RESPUESTA_SIZE];
+	size = serial_string_pack(&buffer, "h", (r ? RESULTADO_OK : RESULTADO_Error));
+	cabecera = protocol_get_header(OP_FSY_Almacenar_Archivo, size);
+	paquete = protocol_get_packet(cabecera, &buffer);
+	if(!protocol_packet_send(sockWorker, &paquete)) {
+		return false;
+	}
+
 	return true;
 }
 

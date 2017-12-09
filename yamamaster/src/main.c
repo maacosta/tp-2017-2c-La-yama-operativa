@@ -63,15 +63,17 @@ socket_t conectar_con_yama(yamamaster_t *config) {
 socket_t conectar_con_worker(char *ip, char *puerto) {
 	socket_t sock;
 	if((sock = socket_connect(ip, puerto)) == -1) {
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 
 	if(!protocol_handshake_send(sock)) {
-		exit(EXIT_FAILURE);
+		socket_close(sock);
+		return -1;
 	}
 	header_t header;
 	if(!protocol_handshake_receive(sock, &header)) {
-		exit(EXIT_FAILURE);
+		socket_close(sock);
+		return -1;
 	}
 	return sock;
 }

@@ -30,8 +30,10 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *
 	size = serial_string_pack(&buffer, "h h s h", num_bloque, bytes_ocupados, &nombre_archivo_tmp, es_txt_archivo_transformador);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
-	if(!protocol_packet_send(sockWorker, &paquete))
+	if(!protocol_packet_send(sockWorker, &paquete)) {
+		socket_close(sockWorker);
 		return false;
+	}
 
 	//enviar programa Transformacion
 	ssize_t size_arc;
@@ -40,14 +42,18 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *
 	else buffer_arc = global_read_binfile(nombre_archivo_transformador, &size_arc);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size_arc);
 	paquete = protocol_get_packet(cabecera, buffer_arc);
-	if(!protocol_packet_send(sockWorker, &paquete))
+	if(!protocol_packet_send(sockWorker, &paquete)) {
+		socket_close(sockWorker);
 		return false;
+	}
 	free(buffer_arc);
 
 	//recibir Iniciar Transformacion
 	paquete = protocol_packet_receive(sockWorker);
-	if(paquete.header.operation == OP_ERROR)
+	if(paquete.header.operation == OP_ERROR) {
+		socket_close(sockWorker);
 		return false;
+	}
 	resultado_t resultado;
 	serial_string_unpack(paquete.payload, "h", &resultado);
 	protocol_packet_free(&paquete);

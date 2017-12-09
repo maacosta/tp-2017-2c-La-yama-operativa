@@ -53,9 +53,6 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 		case OP_FSY_Informacion_Archivo:
 			//resultado = jem_consultar(&packet, cliente, estados_master, nodos);
 			break;
-		case OP_FSY_Almacenar_Archivo:
-			//resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
-			break;
 		case OP_FSY_Obtener_Nodos:
 			resultado = nodos_informar(&packet, cliente);
 			break;
@@ -78,6 +75,9 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 	}
 	else if(packet.header.process == WORKER) {
 		switch(packet.header.operation) {
+		case OP_FSY_Almacenar_Archivo:
+			resultado = filesystem_almacenamiento_final(&packet, cliente, config);
+			break;
 		default:
 			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
 			protocol_packet_free(&packet);
@@ -96,7 +96,7 @@ static void comando_cpfrom(char **cmd, yamafs_t *config) {
 	else if(string_equals_ignore_case(cmd[1], "-t"))
 		es_txt = true;
 
-	char archivo[50];
+	char archivo[NOMBRE_ARCHIVO];
 	int indice = directorio_obtener_indice(cmd[3], &archivo);
 
 	if(!filesystem_cpfrom(cmd[2], &archivo, indice, es_txt, config)) {

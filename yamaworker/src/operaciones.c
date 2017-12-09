@@ -243,3 +243,64 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 
 	return true;
 }
+
+bool op_almacenamiento_final(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
+	header_t cabecera;
+	packet_t paquete;
+	size_t size;
+
+	log_msg_info("operaciones | Etapa Almacenamiento Final: socket master [ %d ]", sockMaster);
+
+	//recibir nombre archivo final temporal y nombre yamafs
+	char nombre_archivo_tmp[NOMBRE_ARCHIVO_TMP];
+	char nombre_archivo_yamafs_tmp[NOMBRE_ARCHIVO_TMP];
+	serial_string_unpack(packet->payload, "s s", &nombre_archivo_tmp, &nombre_archivo_yamafs_tmp);
+	protocol_packet_free(packet);
+
+	//conectar con filesystem
+	socket_t sockFS = conectar_con(config->yamafs_ip, config->yamafs_puerto);
+	if(sockFS == -1)
+		return false;
+
+	//enviar Iniciar Almacenamiento Final
+	char buffer[NOMBRE_ARCHIVO_TMP];
+	size = serial_string_pack(&buffer, "s", &nombre_archivo_yamafs_tmp);
+	cabecera = protocol_get_header(OP_FSY_Almacenar_Archivo, size);
+	paquete = protocol_get_packet(cabecera, &buffer);
+	if(!protocol_packet_send(sockFS, &paquete)) {
+		socket_close(sockFS);
+		return false;
+	}
+
+	//leer archivo
+	ssize_t size_arc;
+	unsigned char *buffer_arc = global_read_txtfile(&nombre_archivo_tmp, &size_arc);
+	cabecera = protocol_get_header(OP_FSY_Almacenar_Archivo, size_arc);
+	paquete = protocol_get_packet(cabecera, buffer_arc);
+	if(!protocol_packet_send(sockFS, &paquete)) {
+		socket_close(sockFS);
+		return false;
+	}
+	free(buffer_arc);
+
+	//recibir respuesta del FS
+	paquete = protocol_packet_receive(sockFS);
+	if(paquete.header.operation == OP_ERROR) {
+		socket_close(sockFS);
+		return false;
+	}
+	resultado_t resultado;
+	serial_string_unpack(paquete.payload, "h", &resultado);
+	protocol_packet_free(&paquete);
+
+	//responder a master
+	char buffer2[RESPUESTA_SIZE];
+	size = serial_string_pack(&buffer, "h", resultado);
+	cabecera = protocol_get_header(OP_WRK_Iniciar_Reduccion, size);
+	paquete = protocol_get_packet(cabecera, &buffer);
+	if(!protocol_packet_send(sockMaster, &paquete)) {
+		return false;
+	}
+
+	return true;
+}
