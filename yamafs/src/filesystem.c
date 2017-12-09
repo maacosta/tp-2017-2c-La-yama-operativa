@@ -188,10 +188,8 @@ bool filesystem_almacenamiento_final(packet_t *packet, socket_t sockWorker, yama
 	if(paquete.header.operation == OP_ERROR) {
 		return false;
 	}
-
 	char archivo[NOMBRE_ARCHIVO];
 	int indice = directorio_obtener_indice(&nombre_archivo_yamafs_tmp, &archivo);
-
 	bool r = filesystem_copiar_a_yamafs(paquete.payload, paquete.header.size, &archivo, indice, true, config);
 	protocol_packet_free(&paquete);
 

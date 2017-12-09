@@ -32,6 +32,7 @@ int procesar_operaciones(socket_t cliente, yamaworker_t *config) {
 			resultado = op_reduccion_global(&packet, cliente, config);
 			break;
 		case OP_WRK_Iniciar_Almacenamiento_Final:
+			resultado = op_almacenamiento_final(&packet, cliente, config);
 			break;
 		default:
 			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
