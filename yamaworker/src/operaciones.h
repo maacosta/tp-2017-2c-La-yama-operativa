@@ -12,7 +12,14 @@
 #include "configuration.h"
 #include "server.h"
 
+typedef struct {
+    char ip[IP_SIZE];
+    char puerto[PUERTO_SIZE];
+    char nombre_archivo_local[NOMBRE_ARCHIVO_TMP];
+} reduccion_worker_t;
+
 bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config);
 bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config);
+bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* config);
 
 #endif /* SRC_OPERACIONES_H_ */

@@ -8,6 +8,11 @@
 #include "../../common/protocol.h"
 #include "configuration.h"
 #include "operaciones.h"
+#include "operaciones_local.h"
+
+void guardar_archivo_tmp(const char *path, const char *nombre_archivo, unsigned char *stream, ssize_t len, bool es_txt);
+
+socket_t conectar_con(char *ip, char *puerto);
 
 void server_crear(yamaworker_t *config);
 

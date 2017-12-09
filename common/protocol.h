@@ -25,28 +25,29 @@
  */
 typedef enum {
 	//General
-	OP_ERROR = 0,		//Se utiliza para responder cualquier error, el detalle queda en el emisor
-	OP_HANDSHAKE,
+	OP_ERROR = 0,							//Informa error en la comunicacion entre procesos, el log queda en el emisor
+	OP_HANDSHAKE,//1						//Handshake entre procesos
 
-	OP_YAM_Enviar_Estado,
-	OP_YAM_Solicitar_Transformacion,
-	OP_YAM_Replanificar_Transformacion,
-	OP_YAM_Solicitar_Reduccion,
-	OP_YAM_Solicitar_Reduccion_Global,
-	OP_YAM_Solicitar_Almacenamiento_Final,
+	OP_YAM_Enviar_Estado,//2
+	OP_YAM_Solicitar_Transformacion,//3
+	OP_YAM_Replanificar_Transformacion,//4
+	OP_YAM_Solicitar_Reduccion,//5
+	OP_YAM_Solicitar_Reduccion_Global,//6
+	OP_YAM_Solicitar_Almacenamiento_Final,//7
 
-	OP_WRK_Iniciar_Transformacion,
-	OP_WRK_Iniciar_Reduccion,
-	OP_WRK_Iniciar_Reduccion_Global,
-	OP_WRK_Iniciar_Almacenamiento_Final,
+	OP_WRK_Iniciar_Transformacion,//8
+	OP_WRK_Iniciar_Reduccion,//9
+	OP_WRK_Iniciar_Reduccion_Global,//10
+	OP_WRK_Iniciar_Almacenamiento_Final,//11
+	OP_WRK_Obtener_Archivo_Local,//12
 
-	OP_FSY_Informacion_Archivo,
-	OP_FSY_Almacenar_Archivo,
-	OP_FSY_Obtener_Nodos,
-	OP_FSY_Registrar_Nodo,
+	OP_FSY_Informacion_Archivo,//13
+	OP_FSY_Almacenar_Archivo,//14
+	OP_FSY_Obtener_Nodos,//15
+	OP_FSY_Registrar_Nodo,//16
 
-	OP_DND_Obtener_Bloque,
-	OP_DND_Almacenar_Bloque,
+	OP_DND_Obtener_Bloque,//17
+	OP_DND_Almacenar_Bloque,//18
 } operation_t;
 
 typedef struct {

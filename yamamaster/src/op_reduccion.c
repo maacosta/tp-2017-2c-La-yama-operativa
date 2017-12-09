@@ -132,12 +132,13 @@ void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *ar
 	protocol_packet_free(&paquete);
 
 	reduccion_global_t reducciones[cant_reducciones];
-	int j;
+	int j, i_encargado;
 	for(i = 0; i < cant_reducciones; i++) {
 		paquete = protocol_packet_receive(sock);
 		if(paquete.header.operation == OP_ERROR)
 			exit(EXIT_FAILURE);
-		serial_string_unpack(paquete.payload, "s s s s s h", &reducciones[i].nombre_nodo, &reducciones[i].ip, &reducciones[i].puerto, &reducciones[i].nombre_archivo_local, &reducciones[i].nombre_archivo_global, &reducciones[i].encargado);
+		serial_string_unpack(paquete.payload, "s s s s s h", &reducciones[i].nombre_nodo, &reducciones[i].ip, &reducciones[i].puerto, &reducciones[i].nombre_archivo_local, &reducciones[i].nombre_archivo_global, &i_encargado);
+		reducciones[i].encargado = (bool)i_encargado;
 		protocol_packet_free(&paquete);
 		if(reducciones[i].encargado)
 			j = i;
