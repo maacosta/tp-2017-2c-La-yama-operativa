@@ -216,7 +216,7 @@ bool transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sock
 	if(paquete.header.operation == OP_ERROR)
 		return false;
 	int cant_bloques;
-	serial_unpack(paquete.payload, "h", &cant_bloques);
+	serial_string_unpack(paquete.payload, "h", &cant_bloques);
 	protocol_packet_free(&paquete);
 	//obtener detalle de cada bloque
 	t_list *bloques = list_create();
@@ -226,7 +226,7 @@ bool transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sock
 		if(paquete.header.operation == OP_ERROR)
 			return false;
 		detalle_archivo_t *det = malloc(sizeof(detalle_archivo_t));
-		serial_unpack(paquete.payload, "h s h s h h", det->num_bloque, det->nombre_nodo_1, det->num_bloque_1, det->nombre_nodo_2, det->num_bloque_2, det->tamanio);
+		serial_string_unpack(paquete.payload, "h s h s h h", det->num_bloque, det->nombre_nodo_1, det->num_bloque_1, det->nombre_nodo_2, det->num_bloque_2, det->tamanio);
 		protocol_packet_free(&paquete);
 		list_add(bloques, det);
 	}

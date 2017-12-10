@@ -257,3 +257,92 @@ bool filesystem_cpto(const char *path_destino, const char *nom_archivo, int indi
 
 	return true;
 }
+
+bool filesystem_obtener_datos_archivo(packet_t *packet, socket_t sockYama, yamafs_t *config) {
+	header_t cabecera;
+	packet_t paquete;
+	size_t size;
+
+	log_msg_info("filesystem | Obtener info archivo: socket [ %d ]", sockYama);
+
+	//recibir nombre archivo yamafs
+	char path_archivo_yamafs[NOMBRE_ARCHIVO_TMP];
+	serial_string_unpack(packet->payload, "s", &path_archivo_yamafs);
+	protocol_packet_free(packet);
+
+	//obtener directorio indice y nombre de archivo
+	char archivo[NOMBRE_ARCHIVO];
+	int indice = directorio_obtener_indice(&path_archivo_yamafs, &archivo);
+
+	//verificar si existe archivo, sino enviar cantidad de bloques 0
+	if(indice == -1) {
+		char buffer_no_encontrado[BLOQUE_SIZE_E];
+		size = serial_string_pack(&buffer_no_encontrado, "h", 0);
+		cabecera = protocol_get_header(OP_FSY_Informacion_Archivo, size);
+		paquete = protocol_get_packet(cabecera, &buffer_no_encontrado);
+		if(!protocol_packet_send(sockYama, &paquete)) {
+			return false;
+		}
+		return false;
+	}
+
+	if(!archivo_existe_config_nombre(config, &archivo, indice)) {
+		char buffer_no_encontrado[BLOQUE_SIZE_E];
+		size = serial_string_pack(&buffer_no_encontrado, "h", 0);
+		cabecera = protocol_get_header(OP_FSY_Informacion_Archivo, size);
+		paquete = protocol_get_packet(cabecera, &buffer_no_encontrado);
+		if(!protocol_packet_send(sockYama, &paquete)) {
+			return false;
+		}
+		return false;
+	}
+
+	//cargar archivo
+	t_config *arc_config = archivo_cargar(config, &archivo, indice);
+	int cant_bloques, tamanio;
+	bool es_txt;
+	archivo_recuperar_cabecera(arc_config, &cant_bloques, &tamanio, &es_txt);
+
+	//enviar cantidad de bloques
+	char buffer_bloques[BLOQUE_SIZE_E];
+	size = serial_string_pack(&buffer_bloques, "h", cant_bloques);
+	cabecera = protocol_get_header(OP_FSY_Informacion_Archivo, size);
+	paquete = protocol_get_packet(cabecera, &buffer_bloques);
+	if(!protocol_packet_send(sockYama, &paquete)) {
+		return false;
+	}
+
+	//recorrer los bloques
+	int i, bytes, bloque_0, bloque_1;
+	char nombre_nodo_0[NOMBRE_NODO_SIZE], nombre_nodo_1[NOMBRE_NODO_SIZE];
+	for(i = 0; i < cant_bloques; i++) {
+		archivo_recuperar_copias(arc_config, i, &bytes, &nombre_nodo_0, &bloque_0, &nombre_nodo_1, &bloque_1);
+
+		//TODO: se envia todo el detalle a yama para que elija el nodo
+		//no se valida la disponibilidad actual del nodo?
+		//verificar si los nodos de las copias estan activas, y elegir primero el 0 y luego el 1 si no existe
+		/*if(nodo_existe(&nombre_nodo_0)) {
+			;
+		}
+		else if(nodo_existe(&nombre_nodo_1)) {
+			;
+		}
+		else {
+			log_msg_error("filesystem | No se encontraron disponibles ambos nodos: [ %s ] [ %s ], del bloque [ %d ]", nombre_nodo_0, nombre_nodo_1, i);
+			return false;
+		}*/
+
+		//enviar detalle de bloque
+		char buffer[BLOQUE_SIZE_E + NOMBRE_NODO_SIZE * 2 + BLOQUE_SIZE_E * 2 + TAMANIO_BLOQUE + 5];
+		size = serial_string_pack(&buffer, "h s h s h h", i, &nombre_nodo_0, bloque_0, &nombre_nodo_1, bloque_1, bytes);
+		cabecera = protocol_get_header(OP_FSY_Informacion_Archivo, size);
+		paquete = protocol_get_packet(cabecera, &buffer);
+		if(!protocol_packet_send(sockYama, &paquete)) {
+			return false;
+		}
+	}
+
+	archivo_destruir(arc_config);
+
+	return true;
+}

@@ -51,13 +51,13 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 	if(packet.header.process == YAMA) {
 		switch(packet.header.operation) {
 		case OP_FSY_Informacion_Archivo:
-			//resultado = jem_consultar(&packet, cliente, estados_master, nodos);
+			resultado = filesystem_obtener_datos_archivo(&packet, cliente, config);
 			break;
 		case OP_FSY_Obtener_Nodos:
 			resultado = nodos_informar(&packet, cliente);
 			break;
 		default:
-			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
+			log_msg_error("Operacion [ %d ] YAMA no contemplada en el contexto de ejecucion", packet.header.operation);
 			protocol_packet_free(&packet);
 			return false;
 		}
@@ -68,7 +68,7 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 			resultado = nodos_registrar(&packet, cliente, config, &esperar_DNs, &estado_estable);
 			break;
 		default:
-			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
+			log_msg_error("Operacion [ %d ] DATANODE no contemplada en el contexto de ejecucion", packet.header.operation);
 			protocol_packet_free(&packet);
 			return false;
 		}
@@ -79,13 +79,16 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 			resultado = filesystem_almacenamiento_final(&packet, cliente, config);
 			break;
 		default:
-			log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
+			log_msg_error("Operacion [ %d ] WORKER no contemplada en el contexto de ejecucion", packet.header.operation);
 			protocol_packet_free(&packet);
 			return false;
 		}
 	}
 	if(!resultado)
 		socket_close(cliente);
+
+	log_msg_info("Procesamiento de operacion [ %s ]", resultado ? "EXITOSO" : "FALLIDO");
+
 	return resultado;
 }
 

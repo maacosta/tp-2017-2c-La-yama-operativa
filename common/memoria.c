@@ -2,9 +2,11 @@
 
 int fd_databin;
 struct stat sb_databin;
+bool es_lectura;
 
 void memoria_abrir(const char *path_databin, bool es_solo_lectura) {
-	fd_databin = open(path_databin, es_solo_lectura ? O_RDWR : O_RDONLY);
+	es_lectura = es_solo_lectura;
+	fd_databin = open(path_databin, es_lectura ? O_RDONLY : O_RDWR);
 	if (fd_databin == -1) {
 		log_msg_error("memoria | No se pudo abrir el archivo [ %s ] %s", path_databin, strerror(errno));
 		exit(EXIT_FAILURE);

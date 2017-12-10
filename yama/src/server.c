@@ -63,8 +63,8 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 		socket_close(cliente);
 	return resultado;
 }
-
 void server_crear_yama(yama_t* config, socket_t sockfs, t_list *nodos) {
+
 	sockFS = sockfs;
 	socket_t cli_i;
 	fd_set read_fdset;

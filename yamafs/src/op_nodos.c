@@ -58,26 +58,26 @@ bool nodos_informar(packet_t *packet, socket_t sockYAMA) {
 
 	//enviar cantidad de Nodos
 	char buffer[BLOQUE_SIZE_E];
-	size = serial_string_pack(&buffer, "h", list_size(lista_nodos));
+	int cant_nodos = list_size(lista_nodos);
+	size = serial_string_pack(&buffer, "h", cant_nodos);
 	cabecera = protocol_get_header(OP_FSY_Obtener_Nodos, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockYAMA, &paquete))
 		return false;
 
-	bool resultado = true;
-	void iterar(nodo_detalle_t *n) {
-		if(!resultado) return;
-		//enviar detalle de Nodo
-		char buffer2[NOMBRE_NODO_SIZE + IP_SIZE + PUERTO_SIZE + 2];
+	nodo_detalle_t *n;
+	char buffer2[NOMBRE_NODO_SIZE + IP_SIZE + PUERTO_SIZE + 2];
+	int i;
+	for(i = 0; i < cant_nodos; i++) {
+		n = list_get(lista_nodos, i);
 		size = serial_string_pack(&buffer2, "s s s", n->nombre_nodo, n->ip, n->puerto);
 		cabecera = protocol_get_header(OP_FSY_Obtener_Nodos, size);
 		paquete = protocol_get_packet(cabecera, &buffer2);
 		if(!protocol_packet_send(sockYAMA, &paquete))
-			resultado = false;
+			return false;
 	}
-	list_iterate(lista_nodos, (void *)iterar);
 
-	return resultado;
+	return true;
 }
 
 nodo_detalle_t *nodos_obtener_datos_nodo(const char *nombre_nodo) {

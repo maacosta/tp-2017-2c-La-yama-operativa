@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
 	config = config_leer("metadata");
 	log_init(config->log_file, config->log_name, true);
 
-	memoria_abrir(config, false);
+	memoria_abrir(config->path_databin, false);
 
 	sockFS = conectar_con_yamafs(config);
 

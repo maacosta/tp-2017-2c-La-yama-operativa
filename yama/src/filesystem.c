@@ -16,8 +16,10 @@ t_list *filesystem_obtener_nodos(socket_t sock) {
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
 	int cant_nodos;
-	serial_unpack(paquete.payload, "h", &cant_nodos);
+	serial_string_unpack(paquete.payload, "h", &cant_nodos);
 	protocol_packet_free(&paquete);
+
+	log_msg_info("Cantidad de nodos informados [ %d ]", cant_nodos);
 
 	//detalle de cada bloque
 	t_list *nodos = list_create();
@@ -27,7 +29,7 @@ t_list *filesystem_obtener_nodos(socket_t sock) {
 		if(paquete.header.operation == OP_ERROR)
 			exit(EXIT_FAILURE);
 		detalle_nodo_t *det = malloc(sizeof(detalle_nodo_t));
-		serial_unpack(paquete.payload, "s s s", det->nodo, det->ip, det->puerto);
+		serial_string_unpack(paquete.payload, "s s s", det->nodo, det->ip, det->puerto);
 		protocol_packet_free(&paquete);
 		det->wl = 0;
 		det->executed_jobs = 0;
