@@ -59,7 +59,7 @@ bool reduccion_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_ma
 	char buffer2[NUMERO_JOB_SIZE + NOMBRE_NODO_SIZE + IP_SIZE + PUERTO_SIZE + NOMBRE_ARCHIVO_TMP*10 + NOMBRE_ARCHIVO_TMP + 5];
 	for(i = 0; i < list_size(detalles); i++) {
 		detalle = list_get(detalles, i);
-		size = serial_string_pack(buffer2, "h s s s s s", detalle->numero_job, detalle->nombre_nodo, detalle->ip, detalle->puerto, detalle->nombre_archivo_temporal, detalle->nombre_archivo_reduccion_local);
+		size = serial_string_pack(&buffer2, "h s s s s s", detalle->numero_job, detalle->nombre_nodo, detalle->ip, detalle->puerto, detalle->nombre_archivo_temporal, detalle->nombre_archivo_reduccion_local);
 		cabecera = protocol_get_header(OP_YAM_Solicitar_Reduccion, size);
 		paquete = protocol_get_packet(cabecera, &buffer2);
 		if(!protocol_packet_send(sockMaster, &paquete))
@@ -113,7 +113,7 @@ bool reduccion_global_iniciar(packet_t *packet, socket_t sockMaster, t_list *est
 		strcpy(detalle->ip, nodo->ip);
 		strcpy(detalle->puerto, nodo->puerto);
 		strcpy(detalle->nombre_archivo_temporal, estado_master->archivo_temporal);
-		global_nombre_aleatorio("ym_", detalle->nombre_archivo_reduccion_global, 6);
+		global_nombre_aleatorio("ym_rg_", &detalle->nombre_archivo_reduccion_global, 6);
 		detalle->encargado = false;
 		list_add(detalles, detalle);
 		//definir encargado
@@ -151,7 +151,7 @@ bool reduccion_global_iniciar(packet_t *packet, socket_t sockMaster, t_list *est
 	char buffer2[NOMBRE_NODO_SIZE + IP_SIZE + PUERTO_SIZE + NOMBRE_ARCHIVO_TMP + NOMBRE_ARCHIVO_TMP + RESPUESTA_SIZE + 5];
 	for(i = 0; i < list_size(detalles); i++) {
 		detalle = list_get(detalles, i);
-		size = serial_string_pack(buffer2, "s s s s s h", detalle->nombre_nodo, detalle->ip, detalle->puerto, detalle->nombre_archivo_temporal, detalle->nombre_archivo_reduccion_global, detalle->encargado);
+		size = serial_string_pack(&buffer2, "s s s s s h", &detalle->nombre_nodo, &detalle->ip, &detalle->puerto, &detalle->nombre_archivo_temporal, &detalle->nombre_archivo_reduccion_global, detalle->encargado);
 		cabecera = protocol_get_header(OP_YAM_Solicitar_Reduccion, size);
 		paquete = protocol_get_packet(cabecera, &buffer2);
 		if(!protocol_packet_send(sockMaster, &paquete))

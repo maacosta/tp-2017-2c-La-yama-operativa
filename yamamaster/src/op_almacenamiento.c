@@ -57,7 +57,7 @@ void ejecutar_almacenamiento(socket_t sockYama, char *archivo_destino) {
 
 	//enviar Estado Almacenamiento Final
 	char buffer2[NOMBRE_NODO_SIZE + RESPUESTA_SIZE + 1];
-	size = serial_string_pack(buffer2, "h h", num_job, respuesta);
+	size = serial_string_pack(&buffer2, "h h", num_job, respuesta);
 	cabecera = protocol_get_header(OP_YAM_Enviar_Estado, size);
 	paquete = protocol_get_packet(cabecera, &buffer2);
 	if(!protocol_packet_send(sock, &paquete))

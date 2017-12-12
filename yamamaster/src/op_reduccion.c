@@ -13,7 +13,7 @@ void atender_reduccion(unsigned char* payload) {
     char nombre_nodo[NOMBRE_NODO_SIZE];
     char ip[IP_SIZE];
     char puerto[PUERTO_SIZE];
-    char nombre_archivos_tmp[NOMBRE_ARCHIVO_TMP*10];
+    char nombre_archivos_tmp[NOMBRE_ARCHIVO_TMP*20];
     char nombre_archivo_reduccion_local[NOMBRE_ARCHIVO_TMP];
 
 	serial_string_unpack(payload, "h s s s s s", &num_job, &nombre_nodo, &ip, &puerto, &nombre_archivos_tmp, &nombre_archivo_reduccion_local);
@@ -24,7 +24,7 @@ void atender_reduccion(unsigned char* payload) {
 		return;
 
 	//enviar Iniciar Reduccion
-	char buffer[NOMBRE_ARCHIVO_TMP + NOMBRE_ARCHIVO_TMP*10 + RESPUESTA_SIZE + 2];
+	char buffer[NOMBRE_ARCHIVO_TMP + NOMBRE_ARCHIVO_TMP*20 + RESPUESTA_SIZE + 2];
 	size = serial_string_pack(&buffer, "s s h", &nombre_archivos_tmp, &nombre_archivo_reduccion_local, es_txt_archivo_reductor);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Reduccion, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
@@ -211,7 +211,7 @@ void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *ar
 
 	//enviar Estado Reduccion Global
 	char buffer3[NUMERO_JOB_SIZE + RESPUESTA_SIZE + 1];
-	size = serial_string_pack(buffer3, "h h", num_job, respuesta);
+	size = serial_string_pack(&buffer3, "h h", num_job, respuesta);
 	cabecera = protocol_get_header(OP_YAM_Enviar_Estado, size);
 	paquete = protocol_get_packet(cabecera, &buffer3);
 	if(!protocol_packet_send(sock, &paquete))
