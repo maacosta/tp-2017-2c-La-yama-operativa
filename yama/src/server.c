@@ -61,8 +61,12 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 	}
 	if(!resultado)
 		socket_close(cliente);
+
+	log_msg_info("Procesamiento de operacion [ %d ] [ %s ]", packet.header.process, resultado ? "EXITOSO" : "FALLIDO");
+
 	return resultado;
 }
+
 void server_crear_yama(yama_t* config, socket_t sockfs, t_list *nodos) {
 
 	sockFS = sockfs;
@@ -92,16 +96,6 @@ void server_crear_yama(yama_t* config, socket_t sockfs, t_list *nodos) {
 		}
 	}
 	socket_close(sockSRV);
-}
-
-void server_crear_nombre_archivo_temporal(char *dest) {
-	char nom[NOMBRE_ARCHIVO_TMP];
-	global_nombre_aleatorio(&nom, 6);
-	char *tmp = string_new();
-	string_append(&tmp, "/tmp/");
-	string_append(&tmp, &nom);
-	strcpy(dest, tmp);
-	free(tmp);
 }
 
 void server_liberar() {

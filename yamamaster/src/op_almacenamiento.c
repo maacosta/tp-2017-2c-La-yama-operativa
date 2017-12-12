@@ -11,6 +11,8 @@ void ejecutar_almacenamiento(socket_t sockYama, char *archivo_destino) {
 	packet_t paquete;
 	size_t size;
 
+	log_msg_info("Almacenamiento Final [ %s ]", nombre_arch_destino);
+
 	//enviar Solicitar Almacenamiento Final
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Almacenamiento_Final, 0);
 	paquete = protocol_get_packet(cabecera, NULL);

@@ -6,7 +6,7 @@ bool jem_consultar(packet_t *packet, socket_t sockMaster, t_list *estados_master
 	serial_string_unpack(packet->payload, "h h", &num_job, &resultado);
 	protocol_packet_free(packet);
 
-	log_msg_info("Actualizacion de estado: socket [ %d ]", sockMaster);
+	log_msg_info("Actualizacion de estado: Job [ %d ] Resultado [ %s ]", num_job, resultado == RESULTADO_OK ? "OK" : "ERROR");
 
 	header_t cabecera;
 	packet_t paquete;
@@ -50,10 +50,12 @@ bool jem_consultar(packet_t *packet, socket_t sockMaster, t_list *estados_master
 	//descontar carga del nodo
 	detalle_nodo_t *nodo;
 	int buscar_por_nodo(detalle_nodo_t *n) {
-		return n->nodo == estado_master->nodo;
+		return strcmp(&n->nodo, &estado_master->nodo) == 0;
 	}
 	nodo = list_find(nodos, (void *)buscar_por_nodo);
 	nodo->wl -= 1;
+
+	log_msg_info("Actualizacion de estado: Nodo [ %s ] WL [ %d ]", &nodo->nodo, nodo->wl);
 
 	//enviar Estado
 	char buffer[RESPUESTA_SIZE];

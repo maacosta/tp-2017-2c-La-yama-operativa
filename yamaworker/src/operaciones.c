@@ -5,7 +5,7 @@ bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config)
 	packet_t paquete;
 	size_t size;
 
-	log_msg_info("operaciones | Etapa Transformacion: socket master [ %d ]", sockMaster);
+	log_msg_info("operaciones | Etapa Transformacion: Socket Master [ %d ]", sockMaster);
 
 	//recibir informacion de bloque y nombre archivo final temporal
 	int num_bloque, bytes_ocupados, i_es_txt;
@@ -16,7 +16,7 @@ bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config)
 	protocol_packet_free(packet);
 	//escribir bloque a disco con un nombre temporal
 	char nombre_bloque_tmp[NOMBRE_ARCHIVO_TMP];
-	global_nombre_aleatorio(&nombre_bloque_tmp, 6);
+	global_nombre_aleatorio("wk_t_", &nombre_bloque_tmp, 8);
 	memoria_abrir(config->path_databin, true);
 	unsigned char *bloque = memoria_obtener_bloque(num_bloque, bytes_ocupados);
 	guardar_archivo_tmp(config->path_tmp, &nombre_bloque_tmp, bloque, bytes_ocupados, true);
@@ -28,7 +28,7 @@ bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config)
 		return false;
 	}
 	char nombre_script_tmp[NOMBRE_ARCHIVO_TMP];
-	global_nombre_aleatorio(&nombre_script_tmp, 8);
+	global_nombre_aleatorio("sc_t_", &nombre_script_tmp, 8);
 	guardar_archivo_tmp(config->path_tmp, &nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
 	protocol_packet_free(&paquete);
 
@@ -39,14 +39,14 @@ bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config)
 
 	//ejecutar archivo temporal ya guardado localmente
 	char *cmd = string_from_format("cat %s | %s | sort > %s", path_bloque, path_script, path_resultado);
-	log_msg_info("operaciones | Comando a ejecutar [ %s ]", cmd);
+	log_msg_info("operaciones | Socket Master [ %d ] Comando a ejecutar [ %s ]", sockMaster, cmd);
 	//asignar permisos a script transformacion
 	chmod(path_script, S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH);
 
 	resultado_t resultado;
 	if(system(cmd) == -1) {
 		resultado = RESULTADO_Error;
-		log_msg_error("operaciones | No se pudo ejecutar el comando [ %s ]", strerror(errno));
+		log_msg_error("operaciones | T Socket Master [ %d ] No se pudo ejecutar el comando [ %s ]", sockMaster, strerror(errno));
 	}
 	resultado = RESULTADO_OK;
 
@@ -72,7 +72,7 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 	packet_t paquete;
 	size_t size;
 
-	log_msg_info("operaciones | Etapa Reduccion: socket master [ %d ]", sockMaster);
+	log_msg_info("operaciones | Etapa Reduccion: Socket Master [ %d ]", sockMaster);
 
 	//recibir informacion de archivos reducidos y nombre archivo final temporal
 	char nombre_archivos_tmp[NOMBRE_ARCHIVO_TMP*10];
@@ -99,7 +99,7 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 		return false;
 	}
 	char nombre_script_tmp[NOMBRE_ARCHIVO_TMP];
-	global_nombre_aleatorio(&nombre_script_tmp, 8);
+	global_nombre_aleatorio("sc_r_", &nombre_script_tmp, 8);
 	guardar_archivo_tmp(config->path_tmp, &nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
 	protocol_packet_free(&paquete);
 
@@ -108,7 +108,7 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 	char *path_resultado = string_from_format("./%s/%s", config->path_tmp, nombre_archivo_reduccion_local);
 
 	string_append_with_format(&cmd, "| %s > %s", path_script, path_resultado);
-	log_msg_info("operaciones | Comando a ejecutar [ %s ]", cmd);
+	log_msg_info("operaciones | R Socket Master [ %d ] Comando a ejecutar [ %s ]", sockMaster, cmd);
 
 	//asignar permisos a script reductor
 	chmod(path_script, S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH);
@@ -116,7 +116,7 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 	resultado_t resultado;
 	if(system(cmd) == -1) {
 		resultado = RESULTADO_Error;
-		log_msg_error("operaciones | No se pudo ejecutar el comando [ %s ]", strerror(errno));
+		log_msg_error("operaciones | R Socket Master [ %d ] No se pudo ejecutar el comando [ %s ]", sockMaster, strerror(errno));
 	}
 	resultado = RESULTADO_OK;
 
@@ -141,7 +141,7 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 	packet_t paquete;
 	size_t size;
 
-	log_msg_info("operaciones | Etapa Reduccion Global: socket master [ %d ]", sockMaster);
+	log_msg_info("operaciones | Etapa Reduccion Global: Socket Master [ %d ]", sockMaster);
 
 	//recibir nombre archivo final temporal y cantidad de reducciones
 	int cant_reducciones;
@@ -157,7 +157,7 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 		return false;
 	}
 	char nombre_script_tmp[NOMBRE_ARCHIVO_TMP];
-	global_nombre_aleatorio(&nombre_script_tmp, 8);
+	global_nombre_aleatorio("sc_rg_", &nombre_script_tmp, 8);
 	guardar_archivo_tmp(config->path_tmp, &nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
 	protocol_packet_free(&paquete);
 
@@ -216,7 +216,7 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 	char *path_resultado = string_from_format("./%s/%s", config->path_tmp, nombre_archivo_reduccion_global);
 
 	string_append_with_format(&cmd, "| %s > %s", path_script, path_resultado);
-	log_msg_info("operaciones | Comando a ejecutar [ %s ]", cmd);
+	log_msg_info("operaciones | RG Socket Master [ %d ] Comando a ejecutar [ %s ]", sockMaster, cmd);
 
 	//asignar permisos a script reductor
 	chmod(path_script, S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH);
@@ -224,7 +224,7 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 	resultado_t resultado;
 	if(system(cmd) == -1) {
 		resultado = RESULTADO_Error;
-		log_msg_error("operaciones | No se pudo ejecutar el comando [ %s ]", strerror(errno));
+		log_msg_error("operaciones | RG Socket Master [ %d ] No se pudo ejecutar el comando [ %s ]", sockMaster, strerror(errno));
 	}
 	resultado = RESULTADO_OK;
 
@@ -249,7 +249,7 @@ bool op_almacenamiento_final(packet_t *packet, socket_t sockMaster, yamaworker_t
 	packet_t paquete;
 	size_t size;
 
-	log_msg_info("operaciones | Etapa Almacenamiento Final: socket master [ %d ]", sockMaster);
+	log_msg_info("operaciones | Etapa Almacenamiento Final: Socket Master [ %d ]", sockMaster);
 
 	//recibir nombre archivo final temporal y nombre yamafs
 	char nombre_archivo_tmp[NOMBRE_ARCHIVO_TMP];

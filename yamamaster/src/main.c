@@ -80,9 +80,9 @@ socket_t conectar_con_worker(char *ip, char *puerto) {
 
 int main(int argc, char **argv) {
 	global_set_process(MASTER);
-	validar_parametros(argc, argv);
 	config = config_leer("metadata");
 	log_init(config->log_file, config->log_name, true);
+	validar_parametros(argc, argv);
 
 	sockYAMA = conectar_con_yama(config);
 

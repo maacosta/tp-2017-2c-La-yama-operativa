@@ -55,6 +55,8 @@ int procesar_operaciones(socket_t cliente, yamaworker_t *config) {
 	if(!resultado)
 		socket_close(cliente);
 
+	log_msg_info("Procesamiento de operacion [ %d ] [ %s ]", packet.header.process, resultado ? "EXITOSO" : "FALLIDO");
+
 	exit(EXIT_SUCCESS);
 }
 

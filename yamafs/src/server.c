@@ -87,7 +87,7 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 	if(!resultado)
 		socket_close(cliente);
 
-	log_msg_info("Procesamiento de operacion [ %s ]", resultado ? "EXITOSO" : "FALLIDO");
+	log_msg_info("Procesamiento de operacion [ %d ] [ %s ]", packet.header.process, resultado ? "EXITOSO" : "FALLIDO");
 
 	return resultado;
 }

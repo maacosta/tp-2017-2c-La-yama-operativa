@@ -3,6 +3,34 @@
 static socket_t sock;
 bool es_txt_archivo_transformador;
 char *nombre_archivo_transformador;
+t_list *nodos;
+sem_t mutex_nodo;
+sem_t mutex_yama;
+
+nodos_hilos_t *obtener_nodo(char *ip, char *puerto) {
+	nodos_hilos_t *nh = NULL;
+
+	sem_wait(&mutex_nodo);
+
+	int buscar_nodo(nodos_hilos_t *n) {
+		return string_equals_ignore_case(n->ip, ip) && string_equals_ignore_case(n->puerto, puerto);
+	}
+	nh = list_find(nodos, (void*)buscar_nodo);
+	if(nh == NULL) {
+		socket_t s = conectar_con_worker(ip, puerto);
+		if(s != -1) {
+			nh = malloc(sizeof(nodos_hilos_t));
+			strcpy(&nh->ip, ip);
+			strcpy(&nh->puerto, puerto);
+			nh->socket = s;
+			sem_init(&nh->semaphore, 0, 1);
+		}
+	}
+
+	sem_post(&mutex_nodo);
+
+	return nh;
+}
 
 bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *resultado_estado) {
 	header_t cabecera;
@@ -21,17 +49,20 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *
 
 	*numero_job = num_job;
 
-	socket_t sockWorker = conectar_con_worker(&ip, &puerto);
-	if(sockWorker == -1)
+	log_msg_info("Transformacion: Job [ %d ] Bloque [ %d ] Bytes [ %d ] Nombre tmp [ %s ]", num_job, num_bloque, bytes_ocupados, &nombre_archivo_tmp);
+
+	nodos_hilos_t *nodo = obtener_nodo(&ip, &puerto);
+	if(nodo == NULL)
 		return false;
 
+	sem_wait(&nodo->semaphore);
 	//enviar Iniciar Transformacion
 	char buffer[BLOQUE_SIZE_E + BYTES_OCUPADOS_SIZE_E + NOMBRE_ARCHIVO_TMP + RESPUESTA_SIZE + 3];
 	size = serial_string_pack(&buffer, "h h s h", num_bloque, bytes_ocupados, &nombre_archivo_tmp, es_txt_archivo_transformador);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
-	if(!protocol_packet_send(sockWorker, &paquete)) {
-		socket_close(sockWorker);
+	if(!protocol_packet_send(nodo->socket, &paquete)) {
+		socket_close(nodo->socket);
 		return false;
 	}
 
@@ -42,22 +73,25 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *
 	else buffer_arc = global_read_binfile(nombre_archivo_transformador, &size_arc);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Transformacion, size_arc);
 	paquete = protocol_get_packet(cabecera, buffer_arc);
-	if(!protocol_packet_send(sockWorker, &paquete)) {
-		socket_close(sockWorker);
+	if(!protocol_packet_send(nodo->socket, &paquete)) {
+		socket_close(nodo->socket);
 		return false;
 	}
 	free(buffer_arc);
 
 	//recibir Iniciar Transformacion
-	paquete = protocol_packet_receive(sockWorker);
+	paquete = protocol_packet_receive(nodo->socket);
 	if(paquete.header.operation == OP_ERROR) {
-		socket_close(sockWorker);
+		socket_close(nodo->socket);
 		return false;
 	}
+	sem_post(&nodo->semaphore);
+
 	resultado_t resultado;
 	serial_string_unpack(paquete.payload, "h", &resultado);
 	protocol_packet_free(&paquete);
 
+	sem_wait(&mutex_yama);
 	//enviar Estado Transformacion
 	char buffer2[NUMERO_JOB_SIZE + RESPUESTA_SIZE + 1];
 	size = serial_string_pack(buffer2, "h h", num_job, resultado);
@@ -73,6 +107,7 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *
 	estado_t estado;
 	serial_string_unpack(paquete.payload, "h", &estado);
 	protocol_packet_free(&paquete);
+	sem_post(&mutex_yama);
 
 	*resultado_estado = estado;
 
@@ -86,24 +121,35 @@ void atender_transformacion(unsigned char* payload) {
 		pthread_exit(EXIT_FAILURE);
 
 	if(estado == ESTADO_Error_Replanifica) {
+		log_msg_info("Transformacion: Replanifica: Job [ %d ]", numero_job);
+
 		header_t cabecera;
 		packet_t paquete;
 		size_t size;
 
+		sem_wait(&mutex_yama);
 		//enviar Solicitar Transformacion
 		char buffer[NUMERO_JOB_SIZE];
 		size = serial_string_pack(buffer, "h", numero_job);
 		cabecera = protocol_get_header(OP_YAM_Replanificar_Transformacion, size);
 		paquete = protocol_get_packet(cabecera, &buffer);
-		if(!protocol_packet_send(sock, &paquete))
+		if(!protocol_packet_send(sock, &paquete)) {
+			sem_post(&mutex_yama);
 			pthread_exit(EXIT_FAILURE);
+		}
 
 		paquete = protocol_packet_receive(sock);
-		if(paquete.header.operation == OP_ERROR)
+		if(paquete.header.operation == OP_ERROR) {
+			sem_post(&mutex_yama);
 			pthread_exit(EXIT_FAILURE);
+		}
+		sem_post(&mutex_yama);
+
 		if(!procesar_transformacion(paquete.payload, &numero_job, &estado))
 			pthread_exit(EXIT_FAILURE);
 	}
+
+	log_msg_info("Transformacion: Finalizacion [ %s ]: Job [ %d ]", estado == ESTADO_Finalizado_OK ? "OK" : "ERROR", numero_job);
 
 	int r = estado == ESTADO_Finalizado_OK ? EXIT_SUCCESS : EXIT_FAILURE;
 	pthread_exit(r);
@@ -117,6 +163,8 @@ void ejecutar_transformacion(socket_t sockYama, bool es_txt_transformador, char 
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
+
+	log_msg_info("Transformacion [ %s ] sobre [ %s ]", nombre_archivo_transformador, arc_origen);
 
 	//enviar Solicitar Transformacion
 	char nombre_archivo[NOMBRE_ARCHIVO];
@@ -134,6 +182,13 @@ void ejecutar_transformacion(socket_t sockYama, bool es_txt_transformador, char 
 	serial_string_unpack(paquete.payload, "h", &cant_bloques);
 	protocol_packet_free(&paquete);
 
+	log_msg_info("Transformacion: Cantidad de bloques [ %d ]", cant_bloques);
+
+	//crear objetos de sincronizacion
+	nodos = list_create();
+	sem_init(&mutex_nodo, 0, 1);
+	sem_init(&mutex_yama, 0, 1);
+
 	pthread_t threads[cant_bloques];
 	for(i = 0; i < cant_bloques; i++) {
 		paquete = protocol_packet_receive(sock);
@@ -144,8 +199,12 @@ void ejecutar_transformacion(socket_t sockYama, bool es_txt_transformador, char 
 	int r;
 	for(i = 0; i < cant_bloques; i++) {
 		r = thread_join(threads[i]);
-		if(r == EXIT_FAILURE)
+		log_msg_info("Transformacion: Finalizacion de thread [ %d ] exitoso", i);
+		if(r == EXIT_FAILURE) {
+			log_msg_error("Transformacion: Error en finalizacion de thread [ %d ]", i);
 			exit(EXIT_FAILURE);
+		}
 	}
+	list_iterate(nodos, free);
 }
 

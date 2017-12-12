@@ -72,6 +72,8 @@ void atender_reduccion(unsigned char* payload) {
 	serial_string_unpack(paquete.payload, "h", &estado);
 	protocol_packet_free(&paquete);
 
+	log_msg_info("Reduccion: Finalizacion [ %s ]: Job [ %d ]", estado == ESTADO_Finalizado_OK ? "OK" : "ERROR", num_job);
+
 	int r = estado == ESTADO_Finalizado_OK ? EXIT_SUCCESS : EXIT_FAILURE;
 	pthread_exit(r);
 }
@@ -84,6 +86,8 @@ void ejecutar_reduccion(socket_t sockYama, bool es_txt_reductor, char *arc_reduc
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
+
+	log_msg_info("Reduccion [ %s ]", nombre_archivo_reductor);
 
 	//enviar Solicitar Reduccion
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Reduccion, 0);
@@ -99,6 +103,8 @@ void ejecutar_reduccion(socket_t sockYama, bool es_txt_reductor, char *arc_reduc
 	serial_string_unpack(paquete.payload, "h", &cant_reducciones);
 	protocol_packet_free(&paquete);
 
+	log_msg_info("Reduccion: Cantidad de reducciones [ %d ]", cant_reducciones);
+
 	pthread_t threads[cant_reducciones];
 	for(i = 0; i < cant_reducciones; i++) {
 		paquete = protocol_packet_receive(sock);
@@ -109,8 +115,11 @@ void ejecutar_reduccion(socket_t sockYama, bool es_txt_reductor, char *arc_reduc
 	int r;
 	for(i = 0; i < cant_reducciones; i++) {
 		r = thread_join(threads[i]);
-		if(r == EXIT_FAILURE)
+		log_msg_info("Reduccion: Finalizacion de thread [ %d ] exitoso", i);
+		if(r == EXIT_FAILURE) {
+			log_msg_error("Reduccion: Error en finalizacion de thread [ %d ]", i);
 			exit(EXIT_FAILURE);
+		}
 	}
 }
 
@@ -122,6 +131,8 @@ void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *ar
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
+
+	log_msg_info("Reduccion Global [ %s ]", nombre_archivo_reductor);
 
 	//enviar Solicitar Reduccion Global
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Reduccion_Global, 0);
@@ -213,6 +224,8 @@ void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *ar
 	estado_t estado;
 	serial_string_unpack(paquete.payload, "h", &estado);
 	protocol_packet_free(&paquete);
+
+	log_msg_info("Reduccion Global: Finalizacion [ %s ]: Job [ %d ]", estado == ESTADO_Finalizado_OK ? "OK" : "ERROR", num_job);
 
 	if(estado != ESTADO_Finalizado_OK)
 		exit(EXIT_FAILURE);

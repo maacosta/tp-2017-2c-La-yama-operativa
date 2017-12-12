@@ -1,7 +1,8 @@
 #include "op_reduccion.h"
 
 bool reduccion_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos) {
-	log_msg_info("Etapa Reduccion Local: socket [ %d ]", sockMaster);
+	protocol_packet_free(packet);
+	log_msg_info("Etapa Reduccion Local: Socket Master [ %d ]", sockMaster);
 
 	header_t cabecera;
 	packet_t paquete;
@@ -20,12 +21,12 @@ bool reduccion_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_ma
 			continue;
 		//detalle buscar o crear con datos iniciales
 		int buscar_por_nodo(detalle_reduccion_t *d) {
-			return string_equals_ignore_case(d->nombre_nodo, estado_master->nodo);
+			return strcmp(&d->nombre_nodo, &estado_master->nodo) == 0;
 		}
-		detalle = list_find(detalle, (void *)buscar_por_nodo);
+		detalle = list_find(detalles, (void *)buscar_por_nodo);
 		if(detalle == NULL) {
 			int buscar_por_nodo(detalle_nodo_t *n) {
-				return string_equals_ignore_case(n->nodo, estado_master->nodo);
+				return strcmp(&n->nodo, &estado_master->nodo) == 0;
 			}
 			nodo = list_find(nodos, (void *)buscar_por_nodo);
 			detalle = malloc(sizeof(detalle_reduccion_t));
@@ -33,7 +34,7 @@ bool reduccion_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_ma
 			strcpy(detalle->nombre_nodo, estado_master->nodo);
 			strcpy(detalle->ip, nodo->ip);
 			strcpy(detalle->puerto, nodo->puerto);
-			server_crear_nombre_archivo_temporal(detalle->nombre_archivo_reduccion_local);
+			global_nombre_aleatorio("ym_r_", &detalle->nombre_archivo_reduccion_local, 6);
 			list_add(detalles, detalle);
 		}
 		//detalle concatenar archivos temporales
@@ -43,6 +44,8 @@ bool reduccion_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_ma
 		strcpy(detalle->nombre_archivo_temporal, tmp);
 		free(tmp);
 	}
+
+	log_msg_info("Etapa Reduccion Local: Cantidad de reducciones [ %d ]", list_size(detalles));
 
 	//enviar Solicitar Reduccion
 	char buffer[BLOQUE_SIZE_E];
@@ -84,7 +87,7 @@ bool reduccion_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_ma
 }
 
 bool reduccion_global_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos) {
-	log_msg_info("Etapa Reduccion Global: socket [ %d ]", sockMaster);
+	log_msg_info("Etapa Reduccion Global: Socket Master [ %d ]", sockMaster);
 
 	header_t cabecera;
 	packet_t paquete;
@@ -110,7 +113,7 @@ bool reduccion_global_iniciar(packet_t *packet, socket_t sockMaster, t_list *est
 		strcpy(detalle->ip, nodo->ip);
 		strcpy(detalle->puerto, nodo->puerto);
 		strcpy(detalle->nombre_archivo_temporal, estado_master->archivo_temporal);
-		server_crear_nombre_archivo_temporal(detalle->nombre_archivo_reduccion_global);
+		global_nombre_aleatorio("ym_", detalle->nombre_archivo_reduccion_global, 6);
 		detalle->encargado = false;
 		list_add(detalles, detalle);
 		//definir encargado
@@ -133,6 +136,8 @@ bool reduccion_global_iniciar(packet_t *packet, socket_t sockMaster, t_list *est
 	strcpy(estado_master->archivo_temporal, detalle_encargado->nombre_archivo_reduccion_global);
 	estado_master->estado = ESTADO_En_Proceso;
 	list_add(estados_master, estado_master);
+
+	log_msg_info("Etapa Reduccion Global: Cantidad de reducciones [ %d ]", list_size(detalles));
 
 	//enviar Solicitar Reduccion
 	char buffer[NUMERO_JOB_SIZE + BLOQUE_SIZE_E + 1];

@@ -259,16 +259,16 @@ bool filesystem_cpto(const char *path_destino, const char *nom_archivo, int indi
 }
 
 bool filesystem_obtener_datos_archivo(packet_t *packet, socket_t sockYama, yamafs_t *config) {
-	header_t cabecera;
-	packet_t paquete;
-	size_t size;
-
-	log_msg_info("filesystem | Obtener info archivo: socket [ %d ]", sockYama);
-
 	//recibir nombre archivo yamafs
 	char path_archivo_yamafs[NOMBRE_ARCHIVO_TMP];
 	serial_string_unpack(packet->payload, "s", &path_archivo_yamafs);
 	protocol_packet_free(packet);
+
+	log_msg_info("filesystem | Obtener info archivo: archivo [ %s ]", &path_archivo_yamafs);
+
+	header_t cabecera;
+	packet_t paquete;
+	size_t size;
 
 	//obtener directorio indice y nombre de archivo
 	char archivo[NOMBRE_ARCHIVO];
