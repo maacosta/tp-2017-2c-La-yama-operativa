@@ -19,7 +19,7 @@ packet_t protocol_get_packet(header_t header, unsigned char* buffer) {
 
 static size_t send_header(socket_t sockfd, header_t header) {
 	unsigned char buffer[HEADER_SIZE];
-	size_t size = serial_pack(&buffer, "HHL", header.process, header.operation, header.size);
+	size_t size = serial_pack((unsigned char*)&buffer, "HHL", header.process, header.operation, header.size);
 	log_msg_info("protocol | Envio de Header [ p%d o%d s%d ]", header.process, header.operation, header.size);
 	return socket_send_bytes((void *)&buffer, size, sockfd);
 }
@@ -41,12 +41,11 @@ header_t protocol_header_receive(socket_t sockfd) {
 	header_t header;
 	size_t size = socket_receive_bytes((void *)&buffer, HEADER_SIZE, sockfd);
 	if(size > 0) {
-		serial_unpack(&buffer, "HHL", &header.process, &header.operation, &header.size);
+		serial_unpack((char*)&buffer, "HHL", &header.process, &header.operation, &header.size);
 		log_msg_info("protocol | Recepcion de Header [ p%d o%d s%d ]", header.process, header.operation, header.size);
 	}
 	else {
 		header.operation = OP_ERROR;
-		log_msg_error("protocol | Error en recepcion de Header");
 	}
 	return header;
 }

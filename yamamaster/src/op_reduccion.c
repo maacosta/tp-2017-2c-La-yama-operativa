@@ -1,11 +1,8 @@
 #include "op_reduccion.h"
 
-static socket_t sock;
-bool es_txt_archivo_reductor;
-char *nombre_archivo_reductor;
 sem_t mutex_yama;
 
-void atender_reduccion(unsigned char* payload) {
+void atender_reduccion(reduccion_hilo_data_t *data) {
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
@@ -17,8 +14,8 @@ void atender_reduccion(unsigned char* payload) {
     char nombre_archivos_tmp[NOMBRE_ARCHIVO_TMP*20];
     char nombre_archivo_reduccion_local[NOMBRE_ARCHIVO_TMP];
 
-	serial_string_unpack(payload, "h s s s s s", &num_job, &nombre_nodo, &ip, &puerto, &nombre_archivos_tmp, &nombre_archivo_reduccion_local);
-	free(payload);
+	serial_string_unpack(data->payload, "h s s s s s", &num_job, &nombre_nodo, &ip, &puerto, &nombre_archivos_tmp, &nombre_archivo_reduccion_local);
+	free(data->payload);
 
 	socket_t sockWorker = conectar_con_worker(&ip, &puerto);
 	if(sockWorker == -1)
@@ -26,7 +23,7 @@ void atender_reduccion(unsigned char* payload) {
 
 	//enviar Iniciar Reduccion
 	char buffer[NOMBRE_ARCHIVO_TMP + NOMBRE_ARCHIVO_TMP*20 + RESPUESTA_SIZE + 2];
-	size = serial_string_pack(&buffer, "s s h", &nombre_archivos_tmp, &nombre_archivo_reduccion_local, es_txt_archivo_reductor);
+	size = serial_string_pack(&buffer, "s s h", &nombre_archivos_tmp, &nombre_archivo_reduccion_local, data->es_txt_archivo_reductor);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Reduccion, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockWorker, &paquete)) {
@@ -37,8 +34,8 @@ void atender_reduccion(unsigned char* payload) {
 	//enviar programa Reductor
 	ssize_t size_arc;
 	unsigned char *buffer_arc;
-	if(es_txt_archivo_reductor) buffer_arc = global_read_txtfile(nombre_archivo_reductor, &size_arc);
-	else buffer_arc = global_read_binfile(nombre_archivo_reductor, &size_arc);
+	if(data->es_txt_archivo_reductor) buffer_arc = global_read_txtfile(data->nombre_archivo_reductor, &size_arc);
+	else buffer_arc = global_read_binfile(data->nombre_archivo_reductor, &size_arc);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Reduccion, size_arc);
 	paquete = protocol_get_packet(cabecera, buffer_arc);
 	if(!protocol_packet_send(sockWorker, &paquete)) {
@@ -65,13 +62,13 @@ void atender_reduccion(unsigned char* payload) {
 	size = serial_string_pack(&buffer2, "h h", num_job, respuesta);
 	cabecera = protocol_get_header(OP_YAM_Enviar_Estado, size);
 	paquete = protocol_get_packet(cabecera, &buffer2);
-	if(!protocol_packet_send(sock, &paquete)) {
+	if(!protocol_packet_send(data->sockYama, &paquete)) {
 		sem_post(&mutex_yama);
 		pthread_exit(EXIT_FAILURE);
 	}
 
 	//recibir Estado Reduccion
-	paquete = protocol_packet_receive(sock);
+	paquete = protocol_packet_receive(data->sockYama);
 	if(paquete.header.operation == OP_ERROR) {
 		sem_post(&mutex_yama);
 		pthread_exit(EXIT_FAILURE);
@@ -82,6 +79,8 @@ void atender_reduccion(unsigned char* payload) {
 
 	sem_post(&mutex_yama);
 
+	free(data);
+
 	log_msg_info("Reduccion: Finalizacion [ %s ]: Job [ %d ]", estado == ESTADO_Finalizado_OK ? "OK" : "ERROR", num_job);
 
 	int r = estado == ESTADO_Finalizado_OK ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -89,24 +88,20 @@ void atender_reduccion(unsigned char* payload) {
 }
 
 void ejecutar_reduccion(socket_t sockYama, bool es_txt_reductor, char *arc_reductor) {
-	sock = sockYama;
-	es_txt_archivo_reductor = es_txt_reductor;
-	nombre_archivo_reductor = arc_reductor;
-
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
 
-	log_msg_info("Reduccion [ %s ]", nombre_archivo_reductor);
+	log_msg_info("Reduccion [ %s ]", arc_reductor);
 
 	//enviar Solicitar Reduccion
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Reduccion, 0);
 	paquete = protocol_get_packet(cabecera, NULL);
-	if(!protocol_packet_send(sock, &paquete))
+	if(!protocol_packet_send(sockYama, &paquete))
 		exit(EXIT_FAILURE);
 
 	//recibir Solicitar Reduccion
-	paquete = protocol_packet_receive(sock);
+	paquete = protocol_packet_receive(sockYama);
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
 	int i, cant_reducciones;
@@ -119,10 +114,15 @@ void ejecutar_reduccion(socket_t sockYama, bool es_txt_reductor, char *arc_reduc
 
 	pthread_t threads[cant_reducciones];
 	for(i = 0; i < cant_reducciones; i++) {
-		paquete = protocol_packet_receive(sock);
+		paquete = protocol_packet_receive(sockYama);
 		if(paquete.header.operation == OP_ERROR)
 			exit(EXIT_FAILURE);
-		threads[i] = thread_create(atender_reduccion, paquete.payload);
+		reduccion_hilo_data_t *data = malloc(sizeof(reduccion_hilo_data_t));
+		data->sockYama = sockYama;
+		data->payload = paquete.payload;
+		data->nombre_archivo_reductor = arc_reductor;
+		data->es_txt_archivo_reductor = es_txt_reductor;
+		threads[i] = thread_create(atender_reduccion, data);
 	}
 	int r;
 	for(i = 0; i < cant_reducciones; i++) {
@@ -136,24 +136,20 @@ void ejecutar_reduccion(socket_t sockYama, bool es_txt_reductor, char *arc_reduc
 }
 
 void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *arc_reductor) {
-	sock = sockYama;
-	es_txt_archivo_reductor = es_txt_reductor;
-	nombre_archivo_reductor = arc_reductor;
-
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
 
-	log_msg_info("Reduccion Global [ %s ]", nombre_archivo_reductor);
+	log_msg_info("Reduccion Global [ %s ]", arc_reductor);
 
 	//enviar Solicitar Reduccion Global
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Reduccion_Global, 0);
 	paquete = protocol_get_packet(cabecera, NULL);
-	if(!protocol_packet_send(sock, &paquete))
+	if(!protocol_packet_send(sockYama, &paquete))
 		exit(EXIT_FAILURE);
 
 	//recibir Solicitar Reduccion Global
-	paquete = protocol_packet_receive(sock);
+	paquete = protocol_packet_receive(sockYama);
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
 	int i, cant_reducciones, num_job;
@@ -163,7 +159,7 @@ void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *ar
 	reduccion_global_t reducciones[cant_reducciones];
 	int j, i_encargado;
 	for(i = 0; i < cant_reducciones; i++) {
-		paquete = protocol_packet_receive(sock);
+		paquete = protocol_packet_receive(sockYama);
 		if(paquete.header.operation == OP_ERROR)
 			exit(EXIT_FAILURE);
 		serial_string_unpack((char*)paquete.payload, "s s s s s h", &reducciones[i].nombre_nodo, &reducciones[i].ip, &reducciones[i].puerto, &reducciones[i].nombre_archivo_local, &reducciones[i].nombre_archivo_global, &i_encargado);
@@ -225,11 +221,11 @@ void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *ar
 	size = serial_string_pack(&buffer3, "h h", num_job, respuesta);
 	cabecera = protocol_get_header(OP_YAM_Enviar_Estado, size);
 	paquete = protocol_get_packet(cabecera, &buffer3);
-	if(!protocol_packet_send(sock, &paquete))
+	if(!protocol_packet_send(sockYama, &paquete))
 		exit(EXIT_FAILURE);
 
 	//recibir Estado Reduccion Global
-	paquete = protocol_packet_receive(sock);
+	paquete = protocol_packet_receive(sockYama);
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
 	estado_t estado;

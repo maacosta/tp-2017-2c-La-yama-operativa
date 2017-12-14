@@ -15,6 +15,13 @@ typedef struct {
     bool encargado;
 } reduccion_global_t;
 
+typedef struct {
+	socket_t sockYama;
+	unsigned char *payload;
+	char *nombre_archivo_reductor;
+	bool es_txt_archivo_reductor;
+} reduccion_hilo_data_t;
+
 void ejecutar_reduccion(socket_t sockYama, bool es_txt_reductor, char *archivo_reductor);
 
 void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *archivo_reductor);

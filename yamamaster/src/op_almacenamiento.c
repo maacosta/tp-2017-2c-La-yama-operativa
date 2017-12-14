@@ -1,26 +1,20 @@
 #include "op_almacenamiento.h"
 
-static socket_t sock;
-static char *nombre_arch_destino;
-
 void ejecutar_almacenamiento(socket_t sockYama, char *archivo_destino) {
-	sock = sockYama;
-	nombre_arch_destino = archivo_destino;
-
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
 
-	log_msg_info("Almacenamiento Final [ %s ]", nombre_arch_destino);
+	log_msg_info("Almacenamiento Final [ %s ]", archivo_destino);
 
 	//enviar Solicitar Almacenamiento Final
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Almacenamiento_Final, 0);
 	paquete = protocol_get_packet(cabecera, NULL);
-	if(!protocol_packet_send(sock, &paquete))
+	if(!protocol_packet_send(sockYama, &paquete))
 		exit(EXIT_FAILURE);
 
 	//recibir Solicitar Almacenamiento Final
-	paquete = protocol_packet_receive(sock);
+	paquete = protocol_packet_receive(sockYama);
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
 
@@ -60,11 +54,11 @@ void ejecutar_almacenamiento(socket_t sockYama, char *archivo_destino) {
 	size = serial_string_pack(&buffer2, "h h", num_job, respuesta);
 	cabecera = protocol_get_header(OP_YAM_Enviar_Estado, size);
 	paquete = protocol_get_packet(cabecera, &buffer2);
-	if(!protocol_packet_send(sock, &paquete))
+	if(!protocol_packet_send(sockYama, &paquete))
 		exit(EXIT_FAILURE);
 
 	//recibir Estado Almacenamiento Final
-	paquete = protocol_packet_receive(sock);
+	paquete = protocol_packet_receive(sockYama);
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
 	estado_t estado;

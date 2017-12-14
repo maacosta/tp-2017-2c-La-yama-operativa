@@ -178,7 +178,7 @@ static ssize_t recvall(socket_t sockfd, unsigned char *buf, size_t len) {
 			return n;
 		}
 		if(n == 0) {
-			log_msg_error("socket | La conexion sobre el socket [ %d ] se cerro", sockfd);
+			log_msg_info("socket | La conexion sobre el socket [ %d ] se cerro", sockfd);
 			return n;
 		}
 		bytes_received += n;

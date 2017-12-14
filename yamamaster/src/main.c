@@ -94,6 +94,7 @@ int main(int argc, char **argv) {
 
 	ejecutar_almacenamiento(sockYAMA, p_destino);
 
+	socket_close(sockYAMA);
 	config_liberar(config);
 
 	return EXIT_SUCCESS;
