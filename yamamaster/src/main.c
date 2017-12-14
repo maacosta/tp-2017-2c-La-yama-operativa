@@ -46,7 +46,7 @@ void validar_parametros(int argc, char **argv) {
 
 socket_t conectar_con_yama(yamamaster_t *config) {
 	socket_t sock;
-	if((sock = socket_connect(config->yama_ip, config->yama_puerto)) == -1) {
+	if((sock = socket_connect(config->yama_ip, config->yama_puerto, "YAMA")) == -1) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -62,7 +62,7 @@ socket_t conectar_con_yama(yamamaster_t *config) {
 
 socket_t conectar_con_worker(char *ip, char *puerto) {
 	socket_t sock;
-	if((sock = socket_connect(ip, puerto)) == -1) {
+	if((sock = socket_connect(ip, puerto, "WORKER")) == -1) {
 		return -1;
 	}
 

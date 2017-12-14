@@ -13,18 +13,14 @@ nodos_hilos_t *obtener_nodo(char *ip, char *puerto) {
 	sem_wait(&mutex_nodo);
 
 	int buscar_nodo(nodos_hilos_t *n) {
-		return string_equals_ignore_case(n->ip, ip) && string_equals_ignore_case(n->puerto, puerto);
+		return string_equals_ignore_case(&n->ip, ip) && string_equals_ignore_case(&n->puerto, puerto);
 	}
 	nh = list_find(nodos, (void*)buscar_nodo);
 	if(nh == NULL) {
-		socket_t s = conectar_con_worker(ip, puerto);
-		if(s != -1) {
-			nh = malloc(sizeof(nodos_hilos_t));
-			strcpy(&nh->ip, ip);
-			strcpy(&nh->puerto, puerto);
-			nh->socket = s;
-			sem_init(&nh->semaphore, 0, 1);
-		}
+		nh = malloc(sizeof(nodos_hilos_t));
+		strcpy(&nh->ip, ip);
+		strcpy(&nh->puerto, puerto);
+		sem_init(&nh->semaphore, 0, 1);
 	}
 
 	sem_post(&mutex_nodo);
@@ -52,10 +48,15 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *
 	log_msg_info("Transformacion: Job [ %d ] Bloque [ %d ] Bytes [ %d ] Nombre tmp [ %s ]", num_job, num_bloque, bytes_ocupados, &nombre_archivo_tmp);
 
 	nodos_hilos_t *nodo = obtener_nodo(&ip, &puerto);
-	if(nodo == NULL)
-		return false;
 
 	sem_wait(&nodo->semaphore);
+
+	nodo->socket = conectar_con_worker(&ip, &puerto);
+	if(nodo->socket == -1) {
+		sem_post(&nodo->semaphore);
+		return false;
+	}
+
 	//enviar Iniciar Transformacion
 	char buffer[BLOQUE_SIZE_E + BYTES_OCUPADOS_SIZE_E + NOMBRE_ARCHIVO_TMP + RESPUESTA_SIZE + 3];
 	size = serial_string_pack(&buffer, "h h s h", num_bloque, bytes_ocupados, &nombre_archivo_tmp, es_txt_archivo_transformador);
@@ -63,6 +64,7 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(nodo->socket, &paquete)) {
 		socket_close(nodo->socket);
+		sem_post(&nodo->semaphore);
 		return false;
 	}
 
@@ -75,6 +77,7 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *
 	paquete = protocol_get_packet(cabecera, buffer_arc);
 	if(!protocol_packet_send(nodo->socket, &paquete)) {
 		socket_close(nodo->socket);
+		sem_post(&nodo->semaphore);
 		return false;
 	}
 	free(buffer_arc);
@@ -82,19 +85,22 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *
 	//recibir Iniciar Transformacion
 	paquete = protocol_packet_receive(nodo->socket);
 	if(paquete.header.operation == OP_ERROR) {
-		socket_close(nodo->socket);
+		sem_post(&nodo->semaphore);
 		return false;
 	}
-	sem_post(&nodo->semaphore);
-
 	resultado_t resultado;
 	serial_string_unpack(paquete.payload, "h", &resultado);
 	protocol_packet_free(&paquete);
 
+	socket_close(nodo->socket);
+
+	sem_post(&nodo->semaphore);
+
 	sem_wait(&mutex_yama);
+
 	//enviar Estado Transformacion
 	char buffer2[NUMERO_JOB_SIZE + RESPUESTA_SIZE + 1];
-	size = serial_string_pack(buffer2, "h h", num_job, resultado);
+	size = serial_string_pack(&buffer2, "h h", num_job, resultado);
 	cabecera = protocol_get_header(OP_YAM_Enviar_Estado, size);
 	paquete = protocol_get_packet(cabecera, &buffer2);
 	if(!protocol_packet_send(sock, &paquete))
@@ -107,9 +113,10 @@ bool procesar_transformacion(unsigned char* payload, int *numero_job, estado_t *
 	estado_t estado;
 	serial_string_unpack(paquete.payload, "h", &estado);
 	protocol_packet_free(&paquete);
-	sem_post(&mutex_yama);
 
 	*resultado_estado = estado;
+
+	sem_post(&mutex_yama);
 
 	return true;
 }
@@ -128,9 +135,10 @@ void atender_transformacion(unsigned char* payload) {
 		size_t size;
 
 		sem_wait(&mutex_yama);
+
 		//enviar Solicitar Transformacion
 		char buffer[NUMERO_JOB_SIZE];
-		size = serial_string_pack(buffer, "h", numero_job);
+		size = serial_string_pack(&buffer, "h", numero_job);
 		cabecera = protocol_get_header(OP_YAM_Replanificar_Transformacion, size);
 		paquete = protocol_get_packet(cabecera, &buffer);
 		if(!protocol_packet_send(sock, &paquete)) {
@@ -143,6 +151,7 @@ void atender_transformacion(unsigned char* payload) {
 			sem_post(&mutex_yama);
 			pthread_exit(EXIT_FAILURE);
 		}
+
 		sem_post(&mutex_yama);
 
 		if(!procesar_transformacion(paquete.payload, &numero_job, &estado))

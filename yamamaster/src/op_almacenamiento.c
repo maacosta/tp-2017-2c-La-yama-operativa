@@ -23,6 +23,7 @@ void ejecutar_almacenamiento(socket_t sockYama, char *archivo_destino) {
 	paquete = protocol_packet_receive(sock);
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
+
 	int num_job;
     char nombre_nodo[NOMBRE_NODO_SIZE];
     char ip[IP_SIZE];
@@ -48,7 +49,6 @@ void ejecutar_almacenamiento(socket_t sockYama, char *archivo_destino) {
 	//recibir Iniciar Almacenamiento Final
 	paquete = protocol_packet_receive(sockWorker);
 	if(paquete.header.operation == OP_ERROR) {
-		socket_close(sockWorker);
 		exit(EXIT_FAILURE);
 	}
 	resultado_t respuesta;
@@ -70,6 +70,8 @@ void ejecutar_almacenamiento(socket_t sockYama, char *archivo_destino) {
 	estado_t estado;
 	serial_string_unpack(paquete.payload, "h", &estado);
 	protocol_packet_free(&paquete);
+
+	log_msg_info("Almacenamiento Final: Finalizacion [ %s ]: Job [ %d ]", estado == ESTADO_Finalizado_OK ? "OK" : "ERROR", num_job);
 
 	if(estado != ESTADO_Finalizado_OK)
 		exit(EXIT_FAILURE);

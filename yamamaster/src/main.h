@@ -7,6 +7,9 @@
 #include "../../common/socket.h"
 #include "../../common/protocol.h"
 #include "configuration.h"
+#include "op_transformacion.h"
+#include "op_reduccion.h"
+#include "op_almacenamiento.h"
 
 typedef struct {
 	char ip[IP_SIZE];
@@ -14,5 +17,7 @@ typedef struct {
 	socket_t socket;
 	sem_t semaphore;
 } nodos_hilos_t;
+
+socket_t conectar_con_worker(char *ip, char *puerto);
 
 #endif /* MAIN_YAMAMASTER_H_ */

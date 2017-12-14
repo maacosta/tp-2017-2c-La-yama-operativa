@@ -43,7 +43,7 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 		resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
 		break;
 	case OP_YAM_Replanificar_Transformacion:
-		;//TODO asociar a tabla de estados ambas copias de los bloques
+		;//TODO desarrollar logica de replanificacion de transformacion: asociar a tabla de estados ambas copias de los bloques
 		break;
 	case OP_YAM_Solicitar_Reduccion:
 		resultado = reduccion_iniciar(&packet, cliente, estados_master, nodos);
@@ -62,18 +62,17 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 	if(!resultado)
 		socket_close(cliente);
 
-	log_msg_info("Procesamiento de operacion [ %d ] [ %s ]", packet.header.process, resultado ? "EXITOSO" : "FALLIDO");
+	log_msg_info("Procesamiento de operacion [ %d ] [ %s ]", packet.header.operation, resultado ? "EXITOSO" : "FALLIDO");
 
 	return resultado;
 }
 
 void server_crear_yama(yama_t* config, socket_t sockfs, t_list *nodos) {
-
 	sockFS = sockfs;
 	socket_t cli_i;
 	fd_set read_fdset;
 
-	sockSRV = socket_listen(config->puerto);
+	sockSRV = socket_listen(config->puerto, "YAMA");
 
 	estados_master = list_create();
 	while(true) {

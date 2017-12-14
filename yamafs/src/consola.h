@@ -7,6 +7,7 @@
 #include <readline/history.h>
 #include <sys/signalfd.h>
 #include <signal.h>
+#include "main.h"
 #include "configuration.h"
 #include "md5.h"
 #include "filesystem.h"

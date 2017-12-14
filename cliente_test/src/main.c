@@ -2,9 +2,9 @@
 
 socket_t sockO, sockD;
 
-socket_t conectar_con(char *ip, char *puerto) {
+socket_t conectar_con(char *ip, char *puerto, const char *nombre) {
 	socket_t sock;
-	if((sock = socket_connect(ip, puerto)) == -1) {
+	if((sock = socket_connect(ip, puerto, nombre)) == -1) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -53,7 +53,7 @@ int main (int argc, char **argv)  {
 	global_set_process(p);
 	log_init("log.txt", "test", true);
 
-	switch(p) {
+	switch((int)p) {
 	case FS:
 		switch(opcion) {
 		case 0:
@@ -63,13 +63,13 @@ int main (int argc, char **argv)  {
 			yamafs_consola_leer_escribir_archivo_texto();
 			break;
 		case 2:
-			sockO = socket_init(NULL, puerto);
+			sockO = socket_init(NULL, puerto, "YAMAFS");
 			sockD = aceptar_cliente(sockO);
 
 			yamafs_registrar_almacenar_obtener_txtbloque(sockO, sockD);
 			break;
 		case 3:
-			sockO = socket_init(NULL, puerto);
+			sockO = socket_init(NULL, puerto, "YAMAFS");
 			sockD = aceptar_cliente(sockO);
 
 			yamafs_registrar_almacenar_obtener_binbloque(sockO, sockD);
@@ -79,17 +79,17 @@ int main (int argc, char **argv)  {
 	case MASTER:
 		switch(opcion) {
 		case 0:
-			sockD = conectar_con(ip, puerto);
+			sockD = conectar_con(ip, puerto, "WORKER");
 
 			worker_enviar_transformacion(sockD);
 			break;
 		case 1:
-			sockD = conectar_con(ip, puerto);
+			sockD = conectar_con(ip, puerto, "WORKER");
 
 			worker_enviar_reduccion(sockD);
 			break;
 		}
 		break;
 	}
-
+	return EXIT_SUCCESS;
 }

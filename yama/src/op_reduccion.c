@@ -19,22 +19,26 @@ bool reduccion_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_ma
 		estado_master = list_get(estados_master, i);
 		if(estado_master->master != sockMaster || estado_master->etapa != ETAPA_Transformacion)
 			continue;
+
 		//detalle buscar o crear con datos iniciales
 		int buscar_por_nodo(detalle_reduccion_t *d) {
 			return strcmp(&d->nombre_nodo, &estado_master->nodo) == 0;
 		}
 		detalle = list_find(detalles, (void *)buscar_por_nodo);
+
 		if(detalle == NULL) {
 			int buscar_por_nodo(detalle_nodo_t *n) {
 				return strcmp(&n->nodo, &estado_master->nodo) == 0;
 			}
 			nodo = list_find(nodos, (void *)buscar_por_nodo);
+
 			detalle = malloc(sizeof(detalle_reduccion_t));
 			detalle->numero_job = list_size(estados_master) + 1 + list_size(detalles);
+			detalle->nombre_archivo_temporal[0] = '\0';
 			strcpy(detalle->nombre_nodo, estado_master->nodo);
 			strcpy(detalle->ip, nodo->ip);
 			strcpy(detalle->puerto, nodo->puerto);
-			global_nombre_aleatorio("ym_r_", &detalle->nombre_archivo_reduccion_local, 6);
+			global_nombre_aleatorio("ym_r_", (char*)&detalle->nombre_archivo_reduccion_local, 6);
 			list_add(detalles, detalle);
 		}
 		//detalle concatenar archivos temporales
@@ -101,6 +105,7 @@ bool reduccion_global_iniciar(packet_t *packet, socket_t sockMaster, t_list *est
 	int i, wl_min = INT_MAX;
 	for(i = 0; i < list_size(estados_master); i++) {
 		estado_master = list_get(estados_master, i);
+		//TODO cambiar el identificador de estado_master para que sea por #job (como en el enunciado)
 		if(estado_master->master != sockMaster || estado_master->etapa != ETAPA_Reduccion_Local)
 			continue;
 		//detalle crear con datos iniciales
@@ -108,13 +113,15 @@ bool reduccion_global_iniciar(packet_t *packet, socket_t sockMaster, t_list *est
 			return string_equals_ignore_case(n->nodo, estado_master->nodo);
 		}
 		nodo = list_find(nodos, (void *)buscar_por_nodo);
+
 		detalle = malloc(sizeof(detalle_reduccion_global_t));
-		strcpy(detalle->nombre_nodo, estado_master->nodo);
-		strcpy(detalle->ip, nodo->ip);
-		strcpy(detalle->puerto, nodo->puerto);
-		strcpy(detalle->nombre_archivo_temporal, estado_master->archivo_temporal);
-		global_nombre_aleatorio("ym_rg_", &detalle->nombre_archivo_reduccion_global, 6);
+		strcpy(&detalle->nombre_nodo, &estado_master->nodo);
+		strcpy(&detalle->ip, &nodo->ip);
+		strcpy(&detalle->puerto, &nodo->puerto);
+		strcpy(&detalle->nombre_archivo_temporal, &estado_master->archivo_temporal);
+		strcpy(&detalle->nombre_archivo_reduccion_global, "*");
 		detalle->encargado = false;
+
 		list_add(detalles, detalle);
 		//definir encargado
 		if(nodo->wl < wl_min) {
@@ -123,17 +130,21 @@ bool reduccion_global_iniciar(packet_t *packet, socket_t sockMaster, t_list *est
 			detalle_encargado = detalle;
 		}
 	}
+	global_nombre_aleatorio("ym_rg_", (char*)&detalle_encargado->nombre_archivo_reduccion_global, 6);
+	detalle_encargado->encargado = true;
+
 	//actualizar lista nodos
 	nodo->wl += 1;
 	nodo->executed_jobs += 1;
+
 	//actualizar estados_master
 	estado_master = malloc(sizeof(estado_master_t));
 	estado_master->job = list_size(estados_master) + 1;
 	estado_master->master = sockMaster;
-	strcpy(estado_master->nodo, detalle_encargado->nombre_nodo);
+	strcpy(&estado_master->nodo, &detalle_encargado->nombre_nodo);
 	estado_master->bloque = 0;
 	estado_master->etapa = ETAPA_Reduccion_Global;
-	strcpy(estado_master->archivo_temporal, detalle_encargado->nombre_archivo_reduccion_global);
+	strcpy(&estado_master->archivo_temporal, &detalle_encargado->nombre_archivo_reduccion_global);
 	estado_master->estado = ESTADO_En_Proceso;
 	list_add(estados_master, estado_master);
 
@@ -141,7 +152,7 @@ bool reduccion_global_iniciar(packet_t *packet, socket_t sockMaster, t_list *est
 
 	//enviar Solicitar Reduccion
 	char buffer[NUMERO_JOB_SIZE + BLOQUE_SIZE_E + 1];
-	size = serial_string_pack(&buffer, "h h", estado_master->job, list_size(detalles));
+	size = serial_string_pack((char*)&buffer, "h h", estado_master->job, list_size(detalles));
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Reduccion_Global, (unsigned long)size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockMaster, &paquete))

@@ -19,7 +19,7 @@ bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config)
 	global_nombre_aleatorio("wk_t_", &nombre_bloque_tmp, 8);
 	memoria_abrir(config->path_databin, true);
 	unsigned char *bloque = memoria_obtener_bloque(num_bloque, bytes_ocupados);
-	guardar_archivo_tmp(config->path_tmp, &nombre_bloque_tmp, bloque, bytes_ocupados, true);
+	guardar_archivo_tmp(config->path_tmp, (char*)&nombre_bloque_tmp, bloque, bytes_ocupados, true);
 	memoria_destruir();
 
 	//recibir archivo temporal y escribirlo a disco con un nombre temporal
@@ -29,7 +29,7 @@ bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config)
 	}
 	char nombre_script_tmp[NOMBRE_ARCHIVO_TMP];
 	global_nombre_aleatorio("sc_t_", &nombre_script_tmp, 8);
-	guardar_archivo_tmp(config->path_tmp, &nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
+	guardar_archivo_tmp(config->path_tmp, (char*)&nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
 	protocol_packet_free(&paquete);
 
 	//ejecutar transformacion
@@ -75,10 +75,10 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 	log_msg_info("operaciones | Etapa Reduccion: Socket Master [ %d ]", sockMaster);
 
 	//recibir informacion de archivos reducidos y nombre archivo final temporal
-	char nombre_archivos_tmp[NOMBRE_ARCHIVO_TMP*10];
+	char nombre_archivos_tmp[NOMBRE_ARCHIVO_TMP*20];
 	char nombre_archivo_reduccion_local[NOMBRE_ARCHIVO_TMP];
-	bool i_es_txt;
-	serial_string_unpack(packet->payload, "s s h", &nombre_archivos_tmp, &nombre_archivo_reduccion_local, &i_es_txt);
+	int i_es_txt;
+	serial_string_unpack((char*)packet->payload, "s s h", &nombre_archivos_tmp, &nombre_archivo_reduccion_local, &i_es_txt);
 	bool es_txt = (bool)i_es_txt;
 	protocol_packet_free(packet);
 	//escribir archivos reducidos unificado a disco con un nombre temporal
@@ -100,7 +100,7 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 	}
 	char nombre_script_tmp[NOMBRE_ARCHIVO_TMP];
 	global_nombre_aleatorio("sc_r_", &nombre_script_tmp, 8);
-	guardar_archivo_tmp(config->path_tmp, &nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
+	guardar_archivo_tmp(config->path_tmp, (char*)&nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
 	protocol_packet_free(&paquete);
 
 	//ejecutar reduccion
@@ -153,12 +153,11 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 
 	//recibir archivo temporal y escribirlo a disco con un nombre temporal
 	paquete = protocol_packet_receive(sockMaster);
-	if(paquete.header.operation == OP_ERROR) {
+	if(paquete.header.operation == OP_ERROR)
 		return false;
-	}
 	char nombre_script_tmp[NOMBRE_ARCHIVO_TMP];
 	global_nombre_aleatorio("sc_rg_", &nombre_script_tmp, 8);
-	guardar_archivo_tmp(config->path_tmp, &nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
+	guardar_archivo_tmp(config->path_tmp, (char*)&nombre_script_tmp, paquete.payload, paquete.header.size, es_txt);
 	protocol_packet_free(&paquete);
 
 	//recorrer detalle de cada nodo
@@ -171,7 +170,7 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 			return false;
 		}
 		det = malloc(sizeof(reduccion_worker_t));
-		serial_string_unpack(paquete.payload, "s s s", det->ip, det->puerto, det->nombre_archivo_local);
+		serial_string_unpack((char*)paquete.payload, "s s s", &det->ip, &det->puerto, &det->nombre_archivo_local);
 		protocol_packet_free(&paquete);
 		list_add(det_reducciones, det);
 	}
@@ -180,13 +179,17 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 	for(i = 0; i < list_size(det_reducciones); i++) {
 		reduccion_worker_t *det = list_get(det_reducciones, i);
 
+		if(string_equals_ignore_case((char*)&det->ip, "*"))
+			continue;
+
 		//conectar con worker
-		socket_t sockWorker = conectar_con(det->ip, det->puerto);
-		if(sockWorker == -1) return false;
+		socket_t sockWorker = conectar_con((char*)&det->ip, (char*)&det->puerto, "WORKER");
+		if(sockWorker == -1)
+			return false;
 
 		//pedir archivo local
 		char buffer[NOMBRE_ARCHIVO_TMP];
-		size = serial_string_pack(&buffer, "s", det->nombre_archivo_local);
+		size = serial_string_pack((char*)&buffer, "s", &det->nombre_archivo_local);
 		cabecera = protocol_get_header(OP_WRK_Obtener_Archivo_Local, size);
 		paquete = protocol_get_packet(cabecera, &buffer);
 		if(!protocol_packet_send(sockWorker, &paquete)) {
@@ -194,13 +197,12 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 			return false;
 		}
 		//recibir archivo temporal y escribirlo a disco con el nombre temporal que se recuperó de yama
-		paquete = protocol_packet_receive(sockMaster);
-		if(paquete.header.operation == OP_ERROR) {
-			socket_close(sockWorker);
+		paquete = protocol_packet_receive(sockWorker);
+		if(paquete.header.operation == OP_ERROR)
 			return false;
-		}
-		guardar_archivo_tmp(config->path_tmp, &det->nombre_archivo_local, paquete.payload, paquete.header.size, es_txt);
+		guardar_archivo_tmp(config->path_tmp, (char*)&det->nombre_archivo_local, paquete.payload, paquete.header.size, es_txt);
 		protocol_packet_free(&paquete);
+
 		socket_close(sockWorker);
 	}
 
@@ -258,7 +260,7 @@ bool op_almacenamiento_final(packet_t *packet, socket_t sockMaster, yamaworker_t
 	protocol_packet_free(packet);
 
 	//conectar con filesystem
-	socket_t sockFS = conectar_con(config->yamafs_ip, config->yamafs_puerto);
+	socket_t sockFS = conectar_con(config->yamafs_ip, config->yamafs_puerto, "YAMAFS");
 	if(sockFS == -1)
 		return false;
 
@@ -273,8 +275,9 @@ bool op_almacenamiento_final(packet_t *packet, socket_t sockMaster, yamaworker_t
 	}
 
 	//leer archivo
+	char *path = string_from_format("./%s/%s", config->path_tmp, &nombre_archivo_tmp);
 	ssize_t size_arc;
-	unsigned char *buffer_arc = global_read_txtfile(&nombre_archivo_tmp, &size_arc);
+	unsigned char *buffer_arc = global_read_txtfile(path, &size_arc);
 	cabecera = protocol_get_header(OP_FSY_Almacenar_Archivo, size_arc);
 	paquete = protocol_get_packet(cabecera, buffer_arc);
 	if(!protocol_packet_send(sockFS, &paquete)) {
@@ -285,22 +288,21 @@ bool op_almacenamiento_final(packet_t *packet, socket_t sockMaster, yamaworker_t
 
 	//recibir respuesta del FS
 	paquete = protocol_packet_receive(sockFS);
-	if(paquete.header.operation == OP_ERROR) {
-		socket_close(sockFS);
+	if(paquete.header.operation == OP_ERROR)
 		return false;
-	}
 	resultado_t resultado;
 	serial_string_unpack(paquete.payload, "h", &resultado);
 	protocol_packet_free(&paquete);
 
+	socket_close(sockFS);
+
 	//responder a master
 	char buffer2[RESPUESTA_SIZE];
-	size = serial_string_pack(&buffer, "h", resultado);
+	size = serial_string_pack(&buffer2, "h", resultado);
 	cabecera = protocol_get_header(OP_WRK_Iniciar_Reduccion, size);
-	paquete = protocol_get_packet(cabecera, &buffer);
-	if(!protocol_packet_send(sockMaster, &paquete)) {
+	paquete = protocol_get_packet(cabecera, &buffer2);
+	if(!protocol_packet_send(sockMaster, &paquete))
 		return false;
-	}
 
 	return true;
 }

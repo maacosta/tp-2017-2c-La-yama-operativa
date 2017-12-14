@@ -5,6 +5,7 @@
 #include <commons/collections/list.h>
 #include "../../common/protocol.h"
 #include "../../common/global.h"
+#include "archivo.h"
 #include "bitmap.h"
 #include "op_nodos.h"
 

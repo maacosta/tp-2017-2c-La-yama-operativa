@@ -12,7 +12,7 @@
 
 void guardar_archivo_tmp(const char *path, const char *nombre_archivo, unsigned char *stream, ssize_t len, bool es_txt);
 
-socket_t conectar_con(char *ip, char *puerto);
+socket_t conectar_con(char *ip, char *puerto, const char *nombre);
 
 void server_crear(yamaworker_t *config);
 

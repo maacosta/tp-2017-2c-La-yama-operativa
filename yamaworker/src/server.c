@@ -15,7 +15,6 @@ void guardar_archivo_tmp(const char *path, const char *nombre_archivo, unsigned 
 int procesar_operaciones(socket_t cliente, yamaworker_t *config) {
 	packet_t packet = protocol_packet_receive(cliente);
 	if(packet.header.operation == OP_ERROR) {
-		socket_close(cliente);
 		exit(EXIT_FAILURE);
 	}
 	bool resultado;
@@ -55,14 +54,14 @@ int procesar_operaciones(socket_t cliente, yamaworker_t *config) {
 	if(!resultado)
 		socket_close(cliente);
 
-	log_msg_info("Procesamiento de operacion [ %d ] [ %s ]", packet.header.process, resultado ? "EXITOSO" : "FALLIDO");
+	log_msg_info("Procesamiento de operacion [ %d ] [ %s ]", packet.header.operation, resultado ? "EXITOSO" : "FALLIDO");
 
 	exit(EXIT_SUCCESS);
 }
 
-socket_t conectar_con(char *ip, char *puerto) {
+socket_t conectar_con(char *ip, char *puerto, const char *nombre) {
 	socket_t sock;
-	if((sock = socket_connect(ip, puerto)) == -1) {
+	if((sock = socket_connect(ip, puerto, nombre)) == -1) {
 		return -1;
 	}
 
@@ -103,7 +102,7 @@ void server_crear(yamaworker_t *config) {
 	socket_t cli_i;
 	int pid;
 
-	sockSRV = socket_init(NULL, config->puerto_nodo);
+	sockSRV = socket_init(NULL, config->puerto_nodo, "WORKER");
 
 	while(true) {
 		cli_i = aceptar_conexion(sockSRV);

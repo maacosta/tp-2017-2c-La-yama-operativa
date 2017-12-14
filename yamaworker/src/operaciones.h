@@ -21,5 +21,6 @@ typedef struct {
 bool op_transformar(packet_t *packet, socket_t sockMaster, yamaworker_t* config);
 bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config);
 bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* config);
+bool op_almacenamiento_final(packet_t *packet, socket_t sockMaster, yamaworker_t* config);
 
 #endif /* SRC_OPERACIONES_H_ */

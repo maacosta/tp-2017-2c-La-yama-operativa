@@ -5,7 +5,7 @@ socket_t sockFS;
 
 socket_t conectar_con_yamafs(yamaDataNodo_t *config) {
 	socket_t sock;
-	if((sock = socket_connect(config->yamafs_ip, config->yamafs_puerto)) == -1) {
+	if((sock = socket_connect(config->yamafs_ip, config->yamafs_puerto, "YAMAFS")) == -1) {
 		exit(EXIT_FAILURE);
 	}
 

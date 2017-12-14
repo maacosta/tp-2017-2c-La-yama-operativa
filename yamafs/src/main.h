@@ -10,4 +10,8 @@
 #include "nodo.h"
 #include "bitmap.h"
 
+void borrar_estructura_de_datos();
+
+void crear_estructura_de_datos();
+
 #endif /* MAIN_YAMAFS_H_ */

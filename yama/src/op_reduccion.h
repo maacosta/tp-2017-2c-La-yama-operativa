@@ -15,7 +15,7 @@ typedef struct {
     char nombre_nodo[NOMBRE_NODO_SIZE];
     char ip[IP_SIZE];
     char puerto[PUERTO_SIZE];
-    char nombre_archivo_temporal[NOMBRE_ARCHIVO_TMP*10];
+    char nombre_archivo_temporal[NOMBRE_ARCHIVO_TMP*20];
     char nombre_archivo_reduccion_local[NOMBRE_ARCHIVO_TMP];
 } detalle_reduccion_t;
 

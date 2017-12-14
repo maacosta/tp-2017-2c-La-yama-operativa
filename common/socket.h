@@ -23,7 +23,7 @@ typedef int socket_t;
  * @param port Puerto.
  * @return Descriptor del socket.
  */
-socket_t socket_init(const char *ip, const char *port);
+socket_t socket_init(const char *ip, const char *port, const char *nombre);
 
 /**
  * Crea un socket de servidor para conectarse con un cliente a través de un
@@ -31,7 +31,7 @@ socket_t socket_init(const char *ip, const char *port);
  * @param port Puerto de escucha.
  * @return Descriptor del socket del cliente.
  */
-socket_t socket_listen(const char *port);
+socket_t socket_listen(const char *port, const char *nombre);
 
 bool socket_select(fd_set *read_fdset);
 
@@ -58,7 +58,7 @@ socket_t socket_accept(socket_t sv_sock);
  * @param port Puerto del servidor.
  * @return Descriptor del socket del servidor.
  */
-socket_t socket_connect(const char *ip, const char *port);
+socket_t socket_connect(const char *ip, const char *port, const char *nombre);
 
 /**
  * Envía datos binarios por una conexión abierta en un determinado socket.

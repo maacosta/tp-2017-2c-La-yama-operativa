@@ -8,7 +8,7 @@ static struct addrinfo *create_addrinfo(const char *ip, const char *port) {
 	if(port != NULL) {
 		int n = atoi(port);
 		if(n < 1024 && n > 65535) {
-			log_msg_error("socket | El numero [ %d ] de puerto debe estar entre 1024 y 65535", n);
+			log_msg_error("socket | El puerto [ %d ] debe estar entre 1024 y 65535", n);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -22,7 +22,7 @@ static struct addrinfo *create_addrinfo(const char *ip, const char *port) {
 
 	int status = getaddrinfo(ip, port, &hints, &addr);
 	if(status != 0) {
-		log_msg_error("socket | %s", gai_strerror(status));
+		log_msg_error("socket | Error al obtener address info [ %s ]", gai_strerror(status));
 		exit(EXIT_FAILURE);
 	}
 
@@ -40,7 +40,7 @@ static socket_t create_socket(struct addrinfo *addr) {
 	return sockfd;
 }
 
-socket_t socket_init(const char *ip, const char *port) {
+socket_t socket_init(const char *ip, const char *port, const char *nombre) {
 	struct addrinfo *cur, *addr = create_addrinfo(ip, port);
 	socket_t sockfd = -1;
 	int ret = -1;
@@ -48,7 +48,7 @@ socket_t socket_init(const char *ip, const char *port) {
 	for(cur = addr; cur != NULL; cur = cur->ai_next) {
 		sockfd = create_socket(cur);
 		if(sockfd == -1) continue;
-		log_msg_info("socket | [ %d ] creado", sockfd);
+		log_msg_info("socket | [ %s ] [ %d ] creado", nombre, sockfd);
 
 		if(ip == NULL) {
 			ret = bind(sockfd, cur->ai_addr, cur->ai_addrlen);
@@ -62,28 +62,28 @@ socket_t socket_init(const char *ip, const char *port) {
 		}
 
 		if(ip == NULL) {
-			log_msg_info("socket | Enlazado con puerto [ %s ]", port);
+			log_msg_info("socket | [ %s ] enlazado con puerto [ %s ]", nombre, port);
 		} else {
-			log_msg_info("socket | Conectado a [ %s:%s ]", ip, port);
+			log_msg_info("socket | [ %s ] conectado a [ %s:%s ]", nombre, ip, port);
 		}
 		break;
 	}
 
 	freeaddrinfo(addr);
 	if(sockfd == -1) {
-		log_msg_error("socket | No se pudo crear el socket");
+		log_msg_error("socket | No se pudo crear el socket para [ %s ]", nombre);
 	}
 	if(ret == -1) {
-		log_msg_error("socket | No se pudo conectar/bindear el socket");
+		log_msg_error("socket | No se pudo conectar/bindear el socket para [ %s ]", nombre);
 		sockfd = ret;
 	}
 
 	if(ip == NULL) {
 		if(listen(sockfd, SOCKET_BACKLOG) == -1) {
-			log_msg_error("socket | Fallo la escucha en el puerto [ %s ] %s", port, strerror(errno));
+			log_msg_error("socket | Fallo la escucha en el puerto [ %s ] de [ %s ] %s", port, nombre, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		log_msg_info("socket | Escuchando en el puerto [ %s ]", port);
+		log_msg_info("socket | Escuchando en el puerto [ %s ] de [ %s ]", port, nombre);
 	}
 
 	return sockfd;
@@ -92,8 +92,8 @@ socket_t socket_init(const char *ip, const char *port) {
 static fd_set active_fdset;
 static socket_t fdmax;
 
-socket_t socket_listen(const char *port) {
-	socket_t sock = socket_init(NULL, port);
+socket_t socket_listen(const char *port, const char *nombre) {
+	socket_t sock = socket_init(NULL, port, nombre);
 	FD_ZERO(&active_fdset);
 	FD_SET(sock, &active_fdset);
 	fdmax = sock;
@@ -146,8 +146,8 @@ socket_t socket_accept(socket_t sv_sock) {
 	return cli_sock;
 }
 
-socket_t socket_connect(const char *ip, const char *port) {
-	return socket_init(ip, port);
+socket_t socket_connect(const char *ip, const char *port, const char *nombre) {
+	return socket_init(ip, port, nombre);
 }
 
 static size_t sendall(socket_t sockfd, unsigned char *buf, size_t len) {
@@ -165,10 +165,7 @@ static size_t sendall(socket_t sockfd, unsigned char *buf, size_t len) {
 }
 
 size_t socket_send_bytes(unsigned char *message, size_t size, socket_t sockfd) {
-	size_t bytes_sent = sendall(sockfd, message, size);
-	if(bytes_sent > 0)
-		;//log_inform("Sent %ld bytes", bytes_sent);
-	return bytes_sent;
+	return sendall(sockfd, message, size);
 }
 
 static ssize_t recvall(socket_t sockfd, unsigned char *buf, size_t len) {
@@ -190,10 +187,7 @@ static ssize_t recvall(socket_t sockfd, unsigned char *buf, size_t len) {
 }
 
 ssize_t socket_receive_bytes(unsigned char *message, size_t size, socket_t sockfd) {
-	ssize_t bytes_received = recvall(sockfd, message, size);
-	if(bytes_received > 0)
-		;//log_inform("Received %ld bytes", bytes_received);
-	return bytes_received;
+	return recvall(sockfd, message, size);
 }
 
 void socket_close(socket_t sockfd) {

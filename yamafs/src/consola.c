@@ -19,7 +19,7 @@ static const char *md5sum(const char *chaine, size_t len) {
     for(i = 0; i < 16; ++i)
         sprintf(&md5string[i*2], "%02x", (unsigned int)digest[i]);
 
-    return string_duplicate(&md5string);
+    return string_duplicate((char*)&md5string);
 }
 
 static void comando_ayuda(char **cmd) {

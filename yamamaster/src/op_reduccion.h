@@ -1,6 +1,7 @@
 #ifndef SRC_OP_REDUCCION_H_
 #define SRC_OP_REDUCCION_H_
 
+#include "main.h"
 #include "../../common/thread.h"
 #include "../../common/protocol.h"
 #include "../../common/socket.h"

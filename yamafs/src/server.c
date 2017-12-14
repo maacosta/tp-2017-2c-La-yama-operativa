@@ -38,13 +38,18 @@ static socket_t aceptar_cliente(socket_t server) {
 		socket_close(cliente);
 		return -1;
 	}
+
+	if(cabecera.process == YAMA)
+		yama_conectada = true;
+
 	return cliente;
 }
 
 static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 	packet_t packet = protocol_packet_receive(cliente);
 	if(packet.header.operation == OP_ERROR) {
-		socket_close(cliente);
+		if(packet.header.process == YAMA)
+			yama_conectada = false;
 		return false;
 	}
 	bool resultado;
@@ -84,10 +89,13 @@ static bool procesar_operaciones(socket_t cliente, yamafs_t *config) {
 			return false;
 		}
 	}
-	if(!resultado)
+	if(!resultado) {
+		if(packet.header.process == YAMA)
+			yama_conectada = false;
 		socket_close(cliente);
+	}
 
-	log_msg_info("Procesamiento de operacion [ %d ] [ %s ]", packet.header.process, resultado ? "EXITOSO" : "FALLIDO");
+	log_msg_info("Procesamiento de operacion [ %d ] [ %s ]", packet.header.operation, resultado ? "EXITOSO" : "FALLIDO");
 
 	return resultado;
 }
@@ -167,7 +175,7 @@ void server_crear(yamafs_t *config) {
 	socket_t cli_i;
 	fd_set read_fdset;
 
-	sockSRV = socket_listen(config->puerto);
+	sockSRV = socket_listen(config->puerto, "YAMAFS");
 
 	int sfd = setup_signalfd();
 	socket_fdset(sfd);
