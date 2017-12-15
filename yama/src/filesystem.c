@@ -1,6 +1,6 @@
 #include "filesystem.h"
 
-t_list *filesystem_obtener_nodos(socket_t sock) {
+void filesystem_obtener_nodos(socket_t sock) {
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
@@ -22,22 +22,17 @@ t_list *filesystem_obtener_nodos(socket_t sock) {
 	log_msg_info("Cantidad de nodos informados [ %d ]", cant_nodos);
 
 	//detalle de cada bloque
-	t_list *nodos = list_create();
+	char nodo[NOMBRE_NODO_SIZE];
+	char ip[IP_SIZE];
+	char puerto[PUERTO_SIZE];
 	int i;
 	for(i = 0; i < cant_nodos; i++) {
 		paquete = protocol_packet_receive(sock);
 		if(paquete.header.operation == OP_ERROR)
 			exit(EXIT_FAILURE);
-		detalle_nodo_t *det = malloc(sizeof(detalle_nodo_t));
-		serial_string_unpack(paquete.payload, "s s s", det->nodo, det->ip, det->puerto);
+		serial_string_unpack(paquete.payload, "s s s", &nodo, &ip, &puerto);
 		protocol_packet_free(&paquete);
-		det->wl = 0;
-		det->executed_jobs = 0;
-		list_add(nodos, det);
-	}
-	return nodos;
-}
 
-void filesystem_liberar_nodos(t_list *nodos) {
-	list_destroy_and_destroy_elements(nodos, free);
+		dn_agregar_nodo(&nodo, &ip, &puerto);
+	}
 }

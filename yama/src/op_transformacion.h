@@ -10,6 +10,10 @@
 #include "filesystem.h"
 #include "server.h"
 
+/*
+ * Contiene la disponibilidad de un nodo para
+ * una lista de bloques determinada (un archivo)
+ */
 typedef struct {
 	char nodo[NOMBRE_NODO_SIZE];
 	unsigned int availability;
@@ -30,6 +34,6 @@ typedef struct {
 	int tamanio;
 } detalle_archivo_seleccionado_t;
 
-bool transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sockFS, yama_t* config, t_list *estados_master, t_list *nodos);
+bool transformacion_iniciar(packet_t *packet, socket_t sockMaster, socket_t sockFS, yama_t* config);
 
 #endif /* YAMA_SRC_TRANSFORMACION_H_ */

@@ -1,65 +1,29 @@
 #include "op_jobs_estados_master.h"
 
-bool jem_consultar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos) {
-	int num_job;
+bool jem_consultar(packet_t *packet, socket_t sockMaster) {
+	estado_master_t *em;
+	int num_job, num_bloque;
+	char nombre_nodo[NOMBRE_NODO_SIZE];
 	resultado_t resultado;
-	serial_string_unpack(packet->payload, "h h", &num_job, &resultado);
+	serial_string_unpack(packet->payload, "h s h h", &num_job, &nombre_nodo, &num_bloque, &resultado);
 	protocol_packet_free(packet);
 
-	log_msg_info("Actualizacion de estado: Job [ %d ] Resultado [ %s ]", num_job, resultado == RESULTADO_OK ? "OK" : "ERROR");
+	log_msg_info("Actualizacion de estado: Job [ %d ] Nodo [ %s ] Bloque [ %d ] Resultado [ %s ]", num_job, &nombre_nodo, num_bloque, resultado == RESULTADO_OK ? "OK" : "ERROR");
+
+	if((em = em_actualizar_estado_bloque(num_job, (char*)&nombre_nodo, num_bloque, resultado)) == NULL)
+		return false;
 
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
 
-	estado_master_t *estado_master;
-	int buscar_por_job(estado_master_t *em) {
-		return em->job == num_job;
-	}
-	estado_master = list_find(estados_master, (void *)buscar_por_job);
-
-	if(estado_master->etapa == ETAPA_Transformacion) {
-		if(estado_master->estado == ESTADO_En_Proceso) {
-			if(resultado == RESULTADO_OK) estado_master->estado = ESTADO_Finalizado_OK;
-			if(resultado == RESULTADO_Error) estado_master->estado = ESTADO_Error_Replanifica;
-		}
-		if(estado_master->estado == ESTADO_Error_Replanifica) {
-			if(resultado == RESULTADO_OK) estado_master->estado = ESTADO_Finalizado_OK;
-			if(resultado == RESULTADO_Error) estado_master->estado = ESTADO_Error;
-		}
-	}
-	if(estado_master->etapa == ETAPA_Reduccion_Local) {
-		if(estado_master->estado == ESTADO_En_Proceso) {
-			if(resultado == RESULTADO_OK) estado_master->estado = ESTADO_Finalizado_OK;
-			if(resultado == RESULTADO_Error) estado_master->estado = ESTADO_Error;
-		}
-	}
-	if(estado_master->etapa == ETAPA_Reduccion_Global) {
-		if(estado_master->estado == ESTADO_En_Proceso) {
-			if(resultado == RESULTADO_OK) estado_master->estado = ESTADO_Finalizado_OK;
-			if(resultado == RESULTADO_Error) estado_master->estado = ESTADO_Error;
-		}
-	}
-	if(estado_master->etapa == ETAPA_Almacenamiento_Final) {
-		if(estado_master->estado == ESTADO_En_Proceso) {
-			if(resultado == RESULTADO_OK) estado_master->estado = ESTADO_Finalizado_OK;
-			if(resultado == RESULTADO_Error) estado_master->estado = ESTADO_Error;
-		}
-	}
-
 	//descontar carga del nodo
-	detalle_nodo_t *nodo;
-	int buscar_por_nodo(detalle_nodo_t *n) {
-		return strcmp(&n->nodo, &estado_master->nodo) == 0;
-	}
-	nodo = list_find(nodos, (void *)buscar_por_nodo);
-	nodo->wl -= 1;
-
-	log_msg_info("Actualizacion de estado: Nodo [ %s ] WL [ %d ]", &nodo->nodo, nodo->wl);
+	detalle_nodo_t *nodo = dn_buscar_por_nodo(&em->nodo);
+	dn_reducir_carga(nodo);
 
 	//enviar Estado
 	char buffer[RESPUESTA_SIZE];
-	size = serial_string_pack(&buffer, "h", estado_master->estado);
+	size = serial_string_pack(&buffer, "h", em->estado);
 	cabecera = protocol_get_header(OP_YAM_Enviar_Estado, size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockMaster, &paquete))

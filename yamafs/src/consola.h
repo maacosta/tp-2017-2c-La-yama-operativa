@@ -9,7 +9,6 @@
 #include <signal.h>
 #include "main.h"
 #include "configuration.h"
-#include "md5.h"
 #include "filesystem.h"
 
 void consola_iniciar(yamafs_t* config, pthread_t th_srv);

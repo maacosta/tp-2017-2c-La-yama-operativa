@@ -14,6 +14,6 @@ typedef struct {
 	bool es_txt_archivo_transformador;
 } transformacion_hilo_data_t;
 
-void ejecutar_transformacion(socket_t sockYama, bool es_txt_transformador, char *archivo_transformador, char *archivo_origen);
+void ejecutar_transformacion(socket_t sockYama, bool es_txt_transformador, char *archivo_transformador, char *archivo_origen, int *num_job);
 
 #endif /* SRC_OP_TRANSFORMACION_H_ */

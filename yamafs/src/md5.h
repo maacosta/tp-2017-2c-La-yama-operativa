@@ -60,7 +60,7 @@
  #define II(a,b,c,d,x,s,t) (a = b + ROTATE_LEFT((a + I(b,c,d) + x + t), s))
 
 unsigned char *md5 (unsigned char *, md5_size, unsigned char *);
- void md5_init (struct md5_ctx *);
+ void md5_init (struct md5_ctx *, size_t len);
  void md5_update (struct md5_ctx *context);
  void md5_final (unsigned char *digest, struct md5_ctx *context);
 

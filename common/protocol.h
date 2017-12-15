@@ -16,7 +16,7 @@
 #define BLOQUE_SIZE_E 3
 #define BYTES_OCUPADOS_SIZE_E 10
 #define NOMBRE_ARCHIVO_TMP 50
-#define NOMBRE_ARCHIVO 50
+#define NOMBRE_ARCHIVO 70
 #define TOKEN_SEPARADOR_ARCHIVOS ";"
 
 /* Operaciones del protocolo
@@ -97,6 +97,9 @@ typedef struct {
 	char archivo_temporal[NOMBRE_ARCHIVO_TMP];
 	estado_t estado;
 } estado_master_t;
+
+void protocol_nombre_etapa(etapa_t etapa, char *nombre_etapa);
+void protocol_nombre_estado(estado_t estado, char *nombre_etapa);
 
 header_t protocol_get_header(unsigned int operation, unsigned long size);
 

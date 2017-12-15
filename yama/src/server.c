@@ -2,11 +2,6 @@
 
 static socket_t sockSRV;
 static socket_t sockFS;
-t_list *estados_master;
-
-static void liberar_estado_master(estado_master_t *estadoMaster) {
-	free(estadoMaster);
-}
 
 static socket_t aceptar_cliente(socket_t server) {
 	socket_t cliente = socket_accept(server);
@@ -28,7 +23,7 @@ static socket_t aceptar_cliente(socket_t server) {
 	return cliente;
 }
 
-static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos) {
+static bool procesar_operaciones(socket_t cliente, yama_t *config) {
 	packet_t packet = protocol_packet_receive(cliente);
 	if(packet.header.operation == OP_ERROR) {
 		socket_close(cliente);
@@ -37,22 +32,22 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 	bool resultado;
 	switch(packet.header.operation) {
 	case OP_YAM_Enviar_Estado:
-		resultado = jem_consultar(&packet, cliente, estados_master, nodos);
+		resultado = jem_consultar(&packet, cliente);
 		break;
 	case OP_YAM_Solicitar_Transformacion:
-		resultado = transformacion_iniciar(&packet, cliente, sockFS, config, estados_master, nodos);
+		resultado = transformacion_iniciar(&packet, cliente, sockFS, config);
 		break;
 	case OP_YAM_Replanificar_Transformacion:
 		;//TODO desarrollar logica de replanificacion de transformacion: asociar a tabla de estados ambas copias de los bloques
 		break;
 	case OP_YAM_Solicitar_Reduccion:
-		resultado = reduccion_iniciar(&packet, cliente, estados_master, nodos);
+		resultado = reduccion_iniciar(&packet, cliente);
 		break;
 	case OP_YAM_Solicitar_Reduccion_Global:
-		resultado = reduccion_global_iniciar(&packet, cliente, estados_master, nodos);
+		resultado = reduccion_global_iniciar(&packet, cliente);
 		break;
 	case OP_YAM_Solicitar_Almacenamiento_Final:
-		resultado = almacenamiento_iniciar(&packet, cliente, estados_master, nodos);
+		resultado = almacenamiento_iniciar(&packet, cliente);
 		break;
 	default:
 		log_msg_error("Operacion [ %d ] no contemplada en el contexto de ejecucion", packet.header.operation);
@@ -67,14 +62,14 @@ static bool procesar_operaciones(socket_t cliente, yama_t *config, t_list *nodos
 	return resultado;
 }
 
-void server_crear_yama(yama_t* config, socket_t sockfs, t_list *nodos) {
+void server_crear_yama(yama_t* config, socket_t sockfs) {
 	sockFS = sockfs;
 	socket_t cli_i;
 	fd_set read_fdset;
 
 	sockSRV = socket_listen(config->puerto, "YAMA");
 
-	estados_master = list_create();
+	em_inicializar();
 	while(true) {
 		if(!socket_select(&read_fdset)) break;
 
@@ -87,7 +82,7 @@ void server_crear_yama(yama_t* config, socket_t sockfs, t_list *nodos) {
 				socket_fdset(cli_sock);
 			}
 			else {
-				if(!procesar_operaciones(cli_i, config, nodos)) {
+				if(!procesar_operaciones(cli_i, config)) {
 					socket_fdclear(cli_i);
 					continue;
 				}
@@ -98,5 +93,5 @@ void server_crear_yama(yama_t* config, socket_t sockfs, t_list *nodos) {
 }
 
 void server_liberar() {
-	list_destroy_and_destroy_elements(estados_master, (void*)liberar_estado_master);
+	em_finalizar();
 }

@@ -22,13 +22,15 @@ int main(int argc, char **argv) {
 	global_set_process(YAMA);
 	config = config_leer("metadata");
 	log_init(config->log_file, config->log_name, true);
+	log_planificador_init("log_planificador.txt", "planificador", false);
 
+	dn_inicializar();
 	socket_t sockFS = conectar_con_yamafs(config);
-	t_list *nodos = filesystem_obtener_nodos(sockFS);
+	filesystem_obtener_nodos(sockFS);
 
-	server_crear_yama(config, sockFS, nodos);
+	server_crear_yama(config, sockFS);
 
-	filesystem_liberar_nodos(nodos);
+	dn_finalizar();
 	server_liberar();
 	config_liberar(config);
 

@@ -11,6 +11,7 @@
 #include "../../common/thread.h"
 #include "configuration.h"
 #include "op_nodos.h"
+#include "md5.h"
 
 pthread_t server_crear_fs(yamafs_t *config, bool esperarDNs);
 

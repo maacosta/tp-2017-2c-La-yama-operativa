@@ -5,23 +5,6 @@ bool fin_consola;
 pthread_t thSRV;
 extern char comando_global[80];
 
-static const char *md5sum(const char *chaine, size_t len) {
-	struct md5_ctx ctx;
-    unsigned char digest[16];
-    md5_init(&ctx);
-    ctx.size = len;
-    strcpy(ctx.buf, chaine);
-    md5_update(&ctx);
-    md5_final(digest, &ctx);
-
-    char md5string[33];
-    int i;
-    for(i = 0; i < 16; ++i)
-        sprintf(&md5string[i*2], "%02x", (unsigned int)digest[i]);
-
-    return string_duplicate((char*)&md5string);
-}
-
 static void comando_ayuda(char **cmd) {
 	puts("Comandos:");
 	puts(">format");
@@ -180,9 +163,19 @@ static void comando_md5(char **cmd) {
 		return;
 	}
 
-	char *path_dir = cmd[1];
-	unsigned char *cod = md5sum(cmd[1], string_length(cmd[1]));
-	printf("md5 %s\n", cod);
+	char archivo[50];
+	int indice = directorio_obtener_indice(cmd[1], &archivo);
+	if(indice == -1) {
+		puts("El directorio origen no existe");
+		return;
+	}
+	if(!archivo_existe_config_nombre(cfg, &archivo, indice)) {
+		puts("El archivo origen no existe");
+		return;
+	}
+
+	pthread_kill(thSRV, SIGRTMIN + 3);
+	puts("Se envio a procesar la solicitud");
 }
 
 static void comando_salir(char **cmd) {

@@ -9,8 +9,6 @@
 #include "../../common/protocol.h"
 #include "configuration.h"
 
-t_list *filesystem_obtener_nodos(socket_t sock);
-
-void filesystem_liberar_nodos(t_list *nodos);
+void filesystem_obtener_nodos(socket_t sock);
 
 #endif /* SRC_FILESYSTEM_H_ */

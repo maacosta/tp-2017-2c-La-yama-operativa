@@ -130,6 +130,42 @@ static void comando_cpto(char **cmd, yamafs_t *config) {
 	puts("   #server @cpto: El archivo se recupero de yama con exito");
 }
 
+static const char *md5sum(const char *chaine, size_t len) {
+	struct md5_ctx ctx;
+    unsigned char digest[16];
+    md5_init(&ctx, len);
+    ctx.size = len;
+    strcpy(ctx.buf, chaine);
+    md5_update(&ctx);
+    md5_final(digest, &ctx);
+
+    char md5string[33];
+    int i;
+    for(i = 0; i < 16; ++i)
+        sprintf(&md5string[i*2], "%02x", (unsigned int)digest[i]);
+
+    return string_duplicate((char*)&md5string);
+}
+
+static void comando_md5(char **cmd, yamafs_t *config) {
+	char archivo[50];
+	int indice = directorio_obtener_indice(cmd[1], &archivo);
+
+	char nombre_arc[20];
+	global_nombre_aleatorio("md5_", &nombre_arc, 12);
+	if(!filesystem_cpto(&nombre_arc, &archivo, indice, config)) {
+		puts("   #server @cpto: No se pudo recuperar el archivo de yama (ver el log de errores)");
+		return;
+	}
+
+	ssize_t size;
+	unsigned char *stream = global_read_txtfile(&nombre_arc, &size);
+	unsigned char *cod = md5sum(stream, size);
+	printf("   #server @md5 %s\n", cod);
+	free(cod);
+	free(stream);
+}
+
 static void atender_senial(int sfd, yamafs_t *config, bool *ejecutar) {
 	log_msg_info("SE ATIENDE SENIAL");
 	struct signalfd_siginfo si;
@@ -154,6 +190,9 @@ static void atender_senial(int sfd, yamafs_t *config, bool *ejecutar) {
 	else if (si.ssi_signo == SIGRTMIN + 2) { //CPTO
 		comando_cpto(cmd, config);
 	}
+	else if (si.ssi_signo == SIGRTMIN + 3) { //MD5
+		comando_md5(cmd, config);
+	}
 	else {
 		log_msg_error("Se envio una senial no controlada");
 	}
@@ -167,6 +206,7 @@ static int setup_signalfd(void) {
     sigaddset(&sigs, SIGRTMIN);
     sigaddset(&sigs, SIGRTMIN + 1);
     sigaddset(&sigs, SIGRTMIN + 2);
+    sigaddset(&sigs, SIGRTMIN + 3);
     sigprocmask(SIG_BLOCK, &sigs, NULL);
     return signalfd(-1, &sigs, SFD_NONBLOCK | SFD_CLOEXEC);
 }

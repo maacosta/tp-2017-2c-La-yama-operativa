@@ -2,6 +2,20 @@
 
 #define HEADER_SIZE 8
 
+void protocol_nombre_etapa(etapa_t etapa, char *nombre_etapa) {
+	if(etapa == ETAPA_Transformacion) strcpy(nombre_etapa, "ETAPA_Transformacion");
+	else if(etapa == ETAPA_Reduccion_Local) strcpy(nombre_etapa, "ETAPA_Reduccion_Local");
+	else if(etapa == ETAPA_Reduccion_Global) strcpy(nombre_etapa, "ETAPA_Reduccion_Global");
+	else if(etapa == ETAPA_Almacenamiento_Final) strcpy(nombre_etapa, "ETAPA_Almacenamiento_Final");
+}
+
+void protocol_nombre_estado(estado_t estado, char *nombre_etapa) {
+	if(estado == ESTADO_En_Proceso) strcpy(nombre_etapa, "ESTADO_En_Proceso");
+	else if(estado == ESTADO_Error_Replanifica) strcpy(nombre_etapa, "ESTADO_Error_Replanifica");
+	else if(estado == ESTADO_Finalizado_OK) strcpy(nombre_etapa, "ESTADO_Finalizado_OK");
+	else if(estado == ESTADO_Error) strcpy(nombre_etapa, "ESTADO_Error");
+}
+
 header_t protocol_get_header(unsigned int operation, unsigned long size) {
 	header_t header;
 	header.process = global_get_process();

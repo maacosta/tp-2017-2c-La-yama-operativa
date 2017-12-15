@@ -25,7 +25,7 @@ nodos_hilos_t *obtener_nodo(char *ip, char *puerto) {
 	return nh;
 }
 
-bool procesar_transformacion(transformacion_hilo_data_t *data, int *numero_job, estado_t *resultado_estado) {
+bool procesar_transformacion(transformacion_hilo_data_t *data, int *numero_job, int *numero_bloque, estado_t *resultado_estado) {
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
@@ -41,6 +41,7 @@ bool procesar_transformacion(transformacion_hilo_data_t *data, int *numero_job, 
 	free(data->payload);
 
 	*numero_job = num_job;
+	*numero_bloque = num_bloque;
 
 	log_msg_info("Transformacion: Job [ %d ] Bloque [ %d ] Bytes [ %d ] Nombre tmp [ %s ]", num_job, num_bloque, bytes_ocupados, &nombre_archivo_tmp);
 
@@ -96,8 +97,8 @@ bool procesar_transformacion(transformacion_hilo_data_t *data, int *numero_job, 
 	sem_wait(&mutex_yama);
 
 	//enviar Estado Transformacion
-	char buffer2[NUMERO_JOB_SIZE + RESPUESTA_SIZE + 1];
-	size = serial_string_pack(&buffer2, "h h", num_job, resultado);
+	char buffer2[NUMERO_JOB_SIZE + NOMBRE_NODO_SIZE + BLOQUE_SIZE_E + RESPUESTA_SIZE + 3];
+	size = serial_string_pack(&buffer2, "h s h h", num_job, &nombre_nodo, num_bloque, resultado);
 	cabecera = protocol_get_header(OP_YAM_Enviar_Estado, size);
 	paquete = protocol_get_packet(cabecera, &buffer2);
 	if(!protocol_packet_send(data->sockYama, &paquete))
@@ -120,12 +121,12 @@ bool procesar_transformacion(transformacion_hilo_data_t *data, int *numero_job, 
 
 void atender_transformacion(transformacion_hilo_data_t *data) {
 	estado_t estado;
-	int numero_job;
-	if(!procesar_transformacion(data, &numero_job, &estado))
+	int num_job, num_bloque;
+	if(!procesar_transformacion(data, &num_job, &num_bloque, &estado))
 		pthread_exit(EXIT_FAILURE);
 
 	if(estado == ESTADO_Error_Replanifica) {
-		log_msg_info("Transformacion: Replanifica: Job [ %d ]", numero_job);
+		log_msg_info("Transformacion: Replanifica: Job [ %d ] Bloque [ %d ]", num_job, num_bloque);
 
 		header_t cabecera;
 		packet_t paquete;
@@ -134,8 +135,8 @@ void atender_transformacion(transformacion_hilo_data_t *data) {
 		sem_wait(&mutex_yama);
 
 		//enviar Solicitar Transformacion
-		char buffer[NUMERO_JOB_SIZE];
-		size = serial_string_pack(&buffer, "h", numero_job);
+		char buffer[NUMERO_JOB_SIZE + BLOQUE_SIZE_E + 1];
+		size = serial_string_pack(&buffer, "h h", num_job, num_bloque);
 		cabecera = protocol_get_header(OP_YAM_Replanificar_Transformacion, size);
 		paquete = protocol_get_packet(cabecera, &buffer);
 		if(!protocol_packet_send(data->sockYama, &paquete)) {
@@ -151,19 +152,19 @@ void atender_transformacion(transformacion_hilo_data_t *data) {
 
 		sem_post(&mutex_yama);
 
-		if(!procesar_transformacion(paquete.payload, &numero_job, &estado))
+		if(!procesar_transformacion(paquete.payload, &num_job, &num_bloque, &estado))
 			pthread_exit(EXIT_FAILURE);
 	}
 
 	free(data);
 
-	log_msg_info("Transformacion: Finalizacion [ %s ]: Job [ %d ]", estado == ESTADO_Finalizado_OK ? "OK" : "ERROR", numero_job);
+	log_msg_info("Transformacion: Finalizacion [ %s ]: Job [ %d ] Bloque [ %d ]", estado == ESTADO_Finalizado_OK ? "OK" : "ERROR", num_job, num_bloque);
 
 	int r = estado == ESTADO_Finalizado_OK ? EXIT_SUCCESS : EXIT_FAILURE;
 	pthread_exit(r);
 }
 
-void ejecutar_transformacion(socket_t sockYama, bool es_txt_transformador, char *arc_transformador, char *arc_origen) {
+void ejecutar_transformacion(socket_t sockYama, bool es_txt_transformador, char *arc_transformador, char *arc_origen, int *num_job) {
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
@@ -183,7 +184,7 @@ void ejecutar_transformacion(socket_t sockYama, bool es_txt_transformador, char 
 	if(paquete.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
 	int i, cant_bloques;
-	serial_string_unpack(paquete.payload, "h", &cant_bloques);
+	serial_string_unpack(paquete.payload, "h h", num_job, &cant_bloques);
 	protocol_packet_free(&paquete);
 
 	log_msg_info("Transformacion: Cantidad de bloques [ %d ]", cant_bloques);

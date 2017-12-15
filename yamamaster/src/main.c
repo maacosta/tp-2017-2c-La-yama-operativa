@@ -86,13 +86,14 @@ int main(int argc, char **argv) {
 
 	sockYAMA = conectar_con_yama(config);
 
-	ejecutar_transformacion(sockYAMA, p_txt_transformador, p_transformador, p_origen);
+	int num_job;
+	ejecutar_transformacion(sockYAMA, p_txt_transformador, p_transformador, p_origen, &num_job);
 
-	ejecutar_reduccion(sockYAMA, p_txt_reductor, p_reductor);
+	ejecutar_reduccion(sockYAMA, p_txt_reductor, p_reductor, num_job);
 
-	ejecutar_reduccion_global(sockYAMA, p_txt_reductor, p_reductor);
+	ejecutar_reduccion_global(sockYAMA, p_txt_reductor, p_reductor, num_job);
 
-	ejecutar_almacenamiento(sockYAMA, p_destino);
+	ejecutar_almacenamiento(sockYAMA, p_destino, num_job);
 
 	socket_close(sockYAMA);
 	config_liberar(config);

@@ -98,19 +98,18 @@ static unsigned char MD5_PADDING [64] = { /* 512 Bits */
         return _digest;
  }
 
-void md5_init (struct md5_ctx *context)
- {
-         context->buf = malloc (MD5_BUFFER);
-         memset (context->buf, '\0', MD5_BUFFER);
-         context->size = 0;
-         context->bits = 0;
+void md5_init(struct md5_ctx *context, size_t len) {
+	context->buf = malloc (len); //MD5_BUFFER
+	memset (context->buf, '\0', len); //MD5_BUFFER
+	context->size = 0;
+	context->bits = 0;
 
-        /* Init registries */
-         context->regs.A = 0x67452301;
-         context->regs.B = 0xefcdab89;
-         context->regs.C = 0x98badcfe;
-         context->regs.D = 0x10325476;
- }
+	/* Init registries */
+	context->regs.A = 0x67452301;
+	context->regs.B = 0xefcdab89;
+	context->regs.C = 0x98badcfe;
+	context->regs.D = 0x10325476;
+}
 
 /* md5_size is bytes while the size at the end of the message is in bits ... */
  static void md5_addsize (unsigned char *M, md5_size index, md5_size oldlen)

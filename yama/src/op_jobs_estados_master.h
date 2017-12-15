@@ -6,12 +6,7 @@
 #include "../../common/global.h"
 #include "../../common/socket.h"
 #include "../../common/protocol.h"
-/*
-#include "configuration.h"
-#include "filesystem.h"
-#include "server.h"
-*/
 
-bool jem_consultar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos);
+bool jem_consultar(packet_t *packet, socket_t sockMaster);
 
 #endif /* SRC_OP_JOBS_ESTADOS_MASTER_H_ */

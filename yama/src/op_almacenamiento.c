@@ -1,44 +1,38 @@
 #include "op_almacenamiento.h"
 
-bool almacenamiento_iniciar(packet_t *packet, socket_t sockMaster, t_list *estados_master, t_list *nodos) {
-	log_msg_info("Etapa Almacenamiento Final: socket [ %d ]", sockMaster);
+bool almacenamiento_iniciar(packet_t *packet, socket_t sockMaster) {
+	int num_job;
+	serial_string_unpack(packet->payload, "h", &num_job);
+	protocol_packet_free(packet);
+
+	log_msg_info("Etapa Almacenamiento Final: Job [ %d ] Socket Master [ %d ]", num_job, sockMaster);
 
 	header_t cabecera;
 	packet_t paquete;
 	size_t size;
 
-	//obtener detalle
+	int i;
 	detalle_nodo_t *nodo;
 	estado_master_t *estado_master_nuevo, *estado_master;
-	int i;
+
+	//obtener detalle
+	t_list *estados_master = em_obtener_listado(num_job, ETAPA_Reduccion_Global);
 	for(i = 0; i < list_size(estados_master); i++) {
 		estado_master = list_get(estados_master, i);
-		if(estado_master->master != sockMaster || estado_master->etapa != ETAPA_Reduccion_Global)
-			continue;
+
 		//detalle crear con datos iniciales
-		int buscar_por_nodo(detalle_nodo_t *n) {
-			return string_equals_ignore_case(n->nodo, estado_master->nodo);
-		}
-		nodo = list_find(nodos, (void *)buscar_por_nodo);
+		nodo = dn_buscar_por_nodo(&estado_master->nodo);
 		break;
 	}
 	//actualizar lista nodos
-	nodo->wl += 1;
-	nodo->executed_jobs += 1;
+	dn_incrementar_carga(nodo);
+
 	//actualizar estados_master
-	estado_master_nuevo = malloc(sizeof(estado_master_t));
-	estado_master_nuevo->job = list_size(estados_master) + 1;
-	estado_master_nuevo->master = sockMaster;
-	strcpy(estado_master_nuevo->nodo, estado_master->nodo);
-	estado_master_nuevo->bloque = 0;
-	estado_master_nuevo->etapa = ETAPA_Almacenamiento_Final;
-	strcpy(estado_master_nuevo->archivo_temporal, estado_master->archivo_temporal);
-	estado_master_nuevo->estado = ESTADO_En_Proceso;
-	list_add(estados_master, estado_master_nuevo);
+	estado_master_t *em = em_agregar_estado_almacenamiento_final(num_job, &nodo->nodo, sockMaster);
 
 	//enviar Solicitar Almacenamiento Final
-	char buffer[NUMERO_JOB_SIZE + NOMBRE_NODO_SIZE + IP_SIZE + PUERTO_SIZE + NOMBRE_ARCHIVO_TMP + 4];
-	size = serial_string_pack(&buffer, "h s s s s", estado_master_nuevo->job, estado_master_nuevo->nodo, nodo->ip, nodo->puerto, estado_master_nuevo->archivo_temporal);
+	char buffer[NOMBRE_NODO_SIZE + IP_SIZE + PUERTO_SIZE + NOMBRE_ARCHIVO_TMP + 3];
+	size = serial_string_pack(&buffer, "s s s s", &em->nodo, &nodo->ip, &nodo->puerto, &estado_master->archivo_temporal);
 	cabecera = protocol_get_header(OP_YAM_Solicitar_Almacenamiento_Final, (unsigned long)size);
 	paquete = protocol_get_packet(cabecera, &buffer);
 	if(!protocol_packet_send(sockMaster, &paquete))

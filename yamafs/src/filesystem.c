@@ -255,7 +255,7 @@ bool filesystem_cpto(const char *path_destino, const char *nom_archivo, int indi
 	free(stream);
 	archivo_destruir(arc_config);
 
-	return true;
+	return !hay_error;
 }
 
 bool filesystem_obtener_datos_archivo(packet_t *packet, socket_t sockYama, yamafs_t *config) {

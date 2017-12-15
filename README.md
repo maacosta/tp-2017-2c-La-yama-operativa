@@ -8,3 +8,6 @@ Ayuditas
  > dd if=/dev/zero of=data.bin bs=1024 count=1024 
  Ejemplo para un data.bin de 10 mb con bloques de 1 mb
  > dd if=/dev/zero of=data.bin bs=1048576 count=10
+ 
+* Para ejecutar en la consola antes de correr la app para usar el mismo tipo de ordenamiento
+ > export LC_ALL=C

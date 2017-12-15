@@ -7,6 +7,7 @@
 #include "../../common/global.h"
 #include "../../common/socket.h"
 #include "../../common/protocol.h"
+#include "estados_master.h"
 #include "configuration.h"
 #include "op_almacenamiento.h"
 #include "op_jobs_estados_master.h"
@@ -14,7 +15,7 @@
 #include "op_transformacion.h"
 
 
-void server_crear_yama(yama_t *config, socket_t sockfs, t_list *nodos);
+void server_crear_yama(yama_t *config, socket_t sockfs);
 
 void server_liberar();
 

@@ -22,8 +22,8 @@ typedef struct {
 	bool es_txt_archivo_reductor;
 } reduccion_hilo_data_t;
 
-void ejecutar_reduccion(socket_t sockYama, bool es_txt_reductor, char *archivo_reductor);
+void ejecutar_reduccion(socket_t sockYama, bool es_txt_reductor, char *archivo_reductor, int num_job);
 
-void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *archivo_reductor);
+void ejecutar_reduccion_global(socket_t sockYama, bool es_txt_reductor, char *archivo_reductor, int num_job);
 
 #endif /* SRC_OP_REDUCCION_H_ */

@@ -7,5 +7,6 @@
 #include "configuration.h"
 #include "filesystem.h"
 #include "server.h"
+#include "log_planificador.h"
 
 #endif /* MAIN_YAMA_H_ */
