@@ -1,18 +1,18 @@
 #include "bitmap.h"
 
 bool bitmap_existe_config(yamafs_t *config, const char *nombre_nodo) {
-	char *path = string_from_format("%s/bitmaps/%s.dat", config->metadata_path, nombre_nodo);
+	char *path = string_from_format("%sbitmaps/%s.dat", config->metadata_path, nombre_nodo);
 	return access(path, F_OK) != -1;
 }
 
 void bitmap_borrar(yamafs_t *config, const char *nombre_nodo) {
-	char *path = string_from_format("%s/bitmaps/%s.dat", config->metadata_path, nombre_nodo);
+	char *path = string_from_format("%sbitmaps/%s.dat", config->metadata_path, nombre_nodo);
 	global_delete_file(path);
 	free(path);
 }
 
 bitmap_t bitmap_abrir(yamafs_t *config, const char *nombre_nodo, off_t count_bits) {
-	char *path = string_from_format("%s/bitmaps/%s.dat", config->metadata_path, nombre_nodo);
+	char *path = string_from_format("%sbitmaps/%s.dat", config->metadata_path, nombre_nodo);
 	int fd_bitmap = open(path, O_RDWR);
 	if (fd_bitmap == -1) {
 		log_msg_error("bitmap | No se pudo abrir el archivo [ %s ] %s", path, strerror(errno));
@@ -43,8 +43,8 @@ bitmap_t bitmap_abrir(yamafs_t *config, const char *nombre_nodo, off_t count_bit
 }
 
 bitmap_t bitmap_crear(yamafs_t *config, const char *nombre_nodo, off_t count_bits) {
-	char *path_dir = string_from_format("%s/bitmaps", config->metadata_path);
-	char *path = string_from_format("%s/%s.dat", path_dir, nombre_nodo);
+	char *path_dir = string_from_format("%sbitmaps/", config->metadata_path);
+	char *path = string_from_format("%s%s.dat", path_dir, nombre_nodo);
 	if(!global_get_dir_exist(path_dir))
 		global_create_dir(path_dir);
 	if(global_get_file_exist(path))

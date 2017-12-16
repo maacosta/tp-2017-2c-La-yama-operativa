@@ -12,18 +12,18 @@ t_config *dir_config;
 directorio_t dir[MAX_DIR];
 
 bool directorio_existe_config(yamafs_t *config) {
-	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
+	char *path = string_from_format("%sdirectorio.dat", config->metadata_path);
 	return access(path, F_OK) != -1;
 }
 
 void directorio_borrar(yamafs_t *config) {
-	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
+	char *path = string_from_format("%sdirectorio.dat", config->metadata_path);
 	global_delete_file(path);
 	free(path);
 }
 
 void directorio_crear(yamafs_t *config) {
-	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
+	char *path = string_from_format("%sdirectorio.dat", config->metadata_path);
 
 	if(!global_create_txtfile(path, NULL, 0)) exit(EXIT_FAILURE);
 
@@ -55,7 +55,7 @@ void directorio_crear(yamafs_t *config) {
 }
 
 void directorio_cargar(yamafs_t *config) {
-	char *path = string_from_format("%s/directorio.dat", config->metadata_path);
+	char *path = string_from_format("%sdirectorio.dat", config->metadata_path);
 
 	dir_config = config_create(path);
 

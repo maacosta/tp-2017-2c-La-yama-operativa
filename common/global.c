@@ -23,7 +23,7 @@ static unsigned char *read_file(const char *path, ssize_t *size, bool is_txt) {
 	FILE *file = fopen(path, is_txt ? "r" : "rb");
 	if(file == NULL) {
 		log_msg_error("global | No se pudo abrir el archivo [ %s ]", path);
-		return -1;
+		return NULL;
 	}
 
 	fseek(file, 0, SEEK_END);
@@ -81,6 +81,52 @@ void global_delete_file(const char *filepath) {
 			log_msg_error("global | No se pudo borrar el archivo [ %s ]", filepath);
 		}
 	}
+}
+
+int global_delete_directory(const char *path) {
+	DIR *d = opendir(path);
+	size_t path_len = strlen(path);
+	int r = -1;
+
+	if(d) {
+		struct dirent *p;
+		r = 0;
+		while (!r && (p=readdir(d))) {
+			int r2 = -1;
+			char *buf;
+			size_t len;
+
+			/* Skip the names "." and ".." as we don't want to recurse on them. */
+			if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
+				continue;
+
+			len = path_len + strlen(p->d_name) + 2;
+			buf = malloc(len);
+
+			if (buf) {
+				struct stat statbuf;
+				snprintf(buf, len, "%s/%s", path, p->d_name);
+
+				if (!stat(buf, &statbuf)) {
+					if (S_ISDIR(statbuf.st_mode))
+						r2 = global_delete_directory(buf);
+					else
+						r2 = unlink(buf);
+				}
+
+				free(buf);
+			}
+			r = r2;
+		}
+		closedir(d);
+	}
+
+	if (!r) {
+		r = rmdir(path);
+	}
+
+	log_msg_info("global | Se borro el directorio [ %s ] y todo su contenido", path);
+	return r;
 }
 
 bool global_get_dir_exist(const char *path) {

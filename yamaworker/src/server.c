@@ -6,7 +6,7 @@ void guardar_archivo_tmp(const char *path, const char *nombre_archivo, unsigned 
 	if(!global_get_dir_exist(path))
 		global_create_dir(path);
 
-	char *path_file = string_from_format("%s/%s", path, nombre_archivo);
+	char *path_file = string_from_format("%s%s", path, nombre_archivo);
 	if(es_txt) global_create_txtfile(path_file, stream, len);
 	else global_create_binfile(path_file, stream, len);
 	free(path_file);
@@ -14,9 +14,9 @@ void guardar_archivo_tmp(const char *path, const char *nombre_archivo, unsigned 
 
 int procesar_operaciones(socket_t cliente, yamaworker_t *config) {
 	packet_t packet = protocol_packet_receive(cliente);
-	if(packet.header.operation == OP_ERROR) {
+	if(packet.header.operation == OP_ERROR)
 		exit(EXIT_FAILURE);
-	}
+
 	bool resultado;
 	switch(packet.header.process) {
 	case MASTER:

@@ -19,8 +19,7 @@ bool tiene_estructura_de_datos() {
 
 void borrar_estructura_de_datos() {
 	log_msg_info("Borrado de estructuras de dato, formateo del filesystem");
-	directorio_borrar(config);
-	nodo_borrar(config);
+	global_delete_directory(config->metadata_path);
 }
 
 void cargar_estructura_de_datos() {

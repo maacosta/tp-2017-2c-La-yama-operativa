@@ -75,22 +75,19 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 	log_msg_info("operaciones | Etapa Reduccion: Socket Master [ %d ]", sockMaster);
 
 	//recibir informacion de archivos reducidos y nombre archivo final temporal
-	char nombre_archivos_tmp[NOMBRE_ARCHIVO_TMP*20];
+	char nombre_archivos_tmp[NOMBRE_ARCHIVO_TMP*200];
 	char nombre_archivo_reduccion_local[NOMBRE_ARCHIVO_TMP];
 	int i_es_txt;
 	serial_string_unpack((char*)packet->payload, "s s h", &nombre_archivos_tmp, &nombre_archivo_reduccion_local, &i_es_txt);
 	bool es_txt = (bool)i_es_txt;
 	protocol_packet_free(packet);
-	//escribir archivos reducidos unificado a disco con un nombre temporal
-	char *cmd = string_duplicate("cat ");
+
+	//escribir resultado de apareo en base a la lista de nombre de archivos temporales de transformacion
+	char nombre_apareo_tmp[NOMBRE_ARCHIVO_TMP];
+	global_nombre_aleatorio("a_r_", &nombre_apareo_tmp, 8);
 	char **arc_reduccion_lista = string_split(&nombre_archivos_tmp, TOKEN_SEPARADOR_ARCHIVOS);
-	void iterar(char *a) {
-		char *path = string_from_format("./%s/%s", config->path_tmp, a);
-		string_append_with_format(&cmd, "%s ", path);
-		free(path);
-		free(a);
-	}
-	string_iterate_lines(arc_reduccion_lista, (void *)iterar);
+	if(!apareo_realizar(arc_reduccion_lista, &nombre_apareo_tmp, config->path_tmp))
+		return false;
 	free(arc_reduccion_lista);
 
 	//recibir archivo temporal y escribirlo a disco con un nombre temporal
@@ -104,10 +101,12 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 	protocol_packet_free(&paquete);
 
 	//ejecutar reduccion
-	char *path_script = string_from_format("./%s/%s", config->path_tmp, nombre_script_tmp);
-	char *path_resultado = string_from_format("./%s/%s", config->path_tmp, nombre_archivo_reduccion_local);
+	char *path_apareo = string_from_format("%s%s", config->path_tmp, &nombre_apareo_tmp);
+	char *path_script = string_from_format("%s%s", config->path_tmp, &nombre_script_tmp);
+	char *path_resultado = string_from_format("%s%s", config->path_tmp, &nombre_archivo_reduccion_local);
 
-	string_append_with_format(&cmd, "| %s > %s", path_script, path_resultado);
+	char *cmd = string_new();
+	string_append_with_format(&cmd, "cat %s | %s > %s", path_apareo, path_script, path_resultado);
 	log_msg_info("operaciones | R Socket Master [ %d ] Comando a ejecutar [ %s ]", sockMaster, cmd);
 
 	//asignar permisos a script reductor
@@ -120,6 +119,7 @@ bool op_reduccion(packet_t *packet, socket_t sockMaster, yamaworker_t* config) {
 	}
 	resultado = RESULTADO_OK;
 
+	free(path_apareo);
 	free(path_script);
 	free(path_resultado);
 	free(cmd);
@@ -161,19 +161,31 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 	protocol_packet_free(&paquete);
 
 	//recorrer detalle de cada nodo
+	char *nombres_arc = malloc(NOMBRE_ARCHIVO_TMP*200);
 	t_list *det_reducciones = list_create();
 	reduccion_worker_t *det;
-	int i;
+	int i, len_tmp = 0;
 	for(i = 0; i < cant_reducciones; i++) {
 		paquete = protocol_packet_receive(sockMaster);
-		if(paquete.header.operation == OP_ERROR) {
+		if(paquete.header.operation == OP_ERROR)
 			return false;
-		}
+
 		det = malloc(sizeof(reduccion_worker_t));
 		serial_string_unpack((char*)paquete.payload, "s s s", &det->ip, &det->puerto, &det->nombre_archivo_local);
 		protocol_packet_free(&paquete);
+
+
+		strcpy(nombres_arc + len_tmp, TOKEN_SEPARADOR_ARCHIVOS);
+		len_tmp += strlen(TOKEN_SEPARADOR_ARCHIVOS);
+		strcpy(nombres_arc + len_tmp, &det->nombre_archivo_local);
+		len_tmp += strlen(&det->nombre_archivo_local);
+
+		log_msg_info("operaciones | Lista de archivos a aparear [ %s ] len [ %d ]", nombres_arc, len_tmp);
+		//string_append_with_format(&nombres_arc, "%s%s", TOKEN_SEPARADOR_ARCHIVOS, &det->nombre_archivo_local);
+
 		list_add(det_reducciones, det);
 	}
+	log_msg_info("operaciones | Lista de archivos a aparear [ %s ]", nombres_arc);
 
 	//conectar con workers y recuperar archivo de reduccion local
 	for(i = 0; i < list_size(det_reducciones); i++) {
@@ -206,18 +218,21 @@ bool op_reduccion_global(packet_t *packet, socket_t sockMaster, yamaworker_t* co
 		socket_close(sockWorker);
 	}
 
-	//ejecutar reduccion
-	char *cmd = string_duplicate("cat ");
-	for(i = 0; i < list_size(det_reducciones); i++) {
-		reduccion_worker_t *det = list_get(det_reducciones, i);
-		char *path_redu = string_from_format("./%s/%s", config->path_tmp, det->nombre_archivo_local);
-		string_append_with_format(&cmd, "%s ", path_redu);
-		free(path_redu);
-	}
-	char *path_script = string_from_format("./%s/%s", config->path_tmp, nombre_script_tmp);
-	char *path_resultado = string_from_format("./%s/%s", config->path_tmp, nombre_archivo_reduccion_global);
+	//escribir resultado de apareo en base a la lista de nombre de archivos temporales de reduccion
+	char nombre_apareo_tmp[NOMBRE_ARCHIVO_TMP];
+	global_nombre_aleatorio("a_rg_", &nombre_apareo_tmp, 8);
+	char **arc_reduccion_lista = string_split(nombres_arc, TOKEN_SEPARADOR_ARCHIVOS);
+	if(!apareo_realizar(arc_reduccion_lista, &nombre_apareo_tmp, config->path_tmp))
+		return false;
+	free(nombres_arc);
+	free(arc_reduccion_lista);
 
-	string_append_with_format(&cmd, "| %s > %s", path_script, path_resultado);
+	char *path_apareo = string_from_format("%s%s", config->path_tmp, &nombre_apareo_tmp);
+	char *path_script = string_from_format("%s%s", config->path_tmp, &nombre_script_tmp);
+	char *path_resultado = string_from_format("%s%s", config->path_tmp, &nombre_archivo_reduccion_global);
+
+	char *cmd = string_new();
+	string_append_with_format(&cmd, "cat %s | %s > %s", path_apareo, path_script, path_resultado);
 	log_msg_info("operaciones | RG Socket Master [ %d ] Comando a ejecutar [ %s ]", sockMaster, cmd);
 
 	//asignar permisos a script reductor
@@ -275,7 +290,7 @@ bool op_almacenamiento_final(packet_t *packet, socket_t sockMaster, yamaworker_t
 	}
 
 	//leer archivo
-	char *path = string_from_format("./%s/%s", config->path_tmp, &nombre_archivo_tmp);
+	char *path = string_from_format("%s%s", config->path_tmp, &nombre_archivo_tmp);
 	ssize_t size_arc;
 	unsigned char *buffer_arc = global_read_txtfile(path, &size_arc);
 	cabecera = protocol_get_header(OP_FSY_Almacenar_Archivo, size_arc);

@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <stdbool.h>
 #include <dirent.h>
 #include <errno.h>
@@ -30,6 +31,7 @@ bool global_create_txtfile(const char *path, unsigned char *buffer, ssize_t len)
 bool global_create_binfile(const char *path, unsigned char *buffer, ssize_t len);
 
 void global_delete_file(const char *filepath);
+int global_delete_directory(const char *path);
 
 bool global_get_dir_exist(const char *path);
 void global_create_dir(const char *path);
